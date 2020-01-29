@@ -1,9 +1,5 @@
 # newslocator
 
-* **newslocator**
-* *newsfrom-api*
-* *newsfrom-ui*
-
 ## About this repository
 It is core component of [NewsFrom application](http://newsfrom.news).
 This project accomplishes 4 tasks in order:
@@ -17,8 +13,13 @@ if there is not any related location
 ## About NewsFrom
 It is an application to display news at related locations.
 Content is gathered from RSS feeds of various publishers with different categories.
+Project consists of 3 components:
 
-The application can be accessed [here](http://newsfrom.news). 
+* **newslocator**
+* *newsfrom-api*
+* *newsfrom-ui*
+
+Application can be accessed [here](http://newsfrom.news). 
 
 ## License
 This repository is under the [MIT license](https://github.com/yildizan/newslocator/blob/master/LICENSE.md).
