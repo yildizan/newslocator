@@ -8,7 +8,4 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface NewsPhraseRepository extends CrudRepository<BufferNewsPhrase, Integer> {
 
-	@Override
-	List<BufferNewsPhrase> findAll();
-
 }

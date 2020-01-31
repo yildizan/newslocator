@@ -8,11 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 public interface FeedRepository extends CrudRepository<Feed, Integer> {
-
-	@Override
-	List<Feed> findAll();
 	
-	@Query("select f from Feed f where is_active = 1")
+	@Query("select f from Feed f where f.isActive = 1")
 	List<Feed> findActive();
 	
 }

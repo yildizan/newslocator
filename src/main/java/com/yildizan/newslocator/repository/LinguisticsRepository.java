@@ -12,9 +12,9 @@ public interface LinguisticsRepository extends CrudRepository<Linguistics, Integ
 	@Override
 	List<Linguistics> findAll();
 	
-	@Query("select l from Linguistics l where type_id = 1 and language_id = 40")
+	@Query("select l from Linguistics l where l.typeId = 1 and l.languageId = 40")
 	List<Linguistics> findEnglishConjunctions();
 
-	@Query("select l from Linguistics l where type_id = 2 and language_id = 40")
+	@Query("select l from Linguistics l where l.typeId = 2 and l.languageId = 40")
 	List<Linguistics> findEnglishExceptions();
 }
