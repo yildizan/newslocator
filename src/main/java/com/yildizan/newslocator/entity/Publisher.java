@@ -2,7 +2,7 @@ package com.yildizan.newslocator.entity;
 
 public class Publisher {
 
-    // ids of publishers
+    // supported publishers
     public static final int SPUTNIK = 1;
     public static final int REUTERS = 2;
     public static final int BBC = 3;

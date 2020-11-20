@@ -1,5 +1,7 @@
 package com.yildizan.newslocator.controller;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -10,6 +12,7 @@ import javax.transaction.Transactional;
 
 import com.yildizan.newslocator.entity.*;
 import com.yildizan.newslocator.utility.Discord;
+import com.yildizan.newslocator.utility.Report;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +54,7 @@ public class LocatorController {
 	@Autowired
 	private Discord discord;
 
-	@Value("${wikipedia-enabled}")
+	@Value("${wikipedia.enabled}")
 	private boolean wikipediaEnabled;
 	
 	@PersistenceContext
@@ -64,30 +67,30 @@ public class LocatorController {
 	3. search for location related to them
 	4. (optional) research wikipedia if no location exists with that phrase
 	 */
-	@GetMapping(path="/locate")
-	@ResponseStatus(value=HttpStatus.OK)
+	@GetMapping(path = "/locate")
+	@ResponseStatus(value = HttpStatus.OK)
 	public void locate() {
 		long start = System.currentTimeMillis();
-		int notMatched = 0;
-		int matched = 0;
-		int located = 0;
-		boolean isSuccessful = true;
-		try {
-			StoredProcedureQuery query = entityManager.createStoredProcedureQuery("clear_buffer");
-			query.execute();
-			log.info("buffer clear");
-			List<Feed> feeds = feedRepository.findActive();
-			for(Feed feed : feeds) {
+		List<Report> reports = new ArrayList<>();
+		List<Feed> feeds = feedRepository.findActive();
+
+		// dump buffer
+		StoredProcedureQuery query = entityManager.createStoredProcedureQuery("clear_buffer");
+		query.execute();
+		log.info("buffer clear");
+
+		for(Feed feed : feeds) {
+			Report report = new Report(feed, System.currentTimeMillis());
+			try {
 				// build newspaper from feed
 				Newspaper newspaper = operator.read(feed);
 				int language = feed.getLanguageId();
 				for(Map.Entry<BufferNews, List<Phrase>> entry : newspaper.getNews().entrySet()) {
 					BufferNews news = entry.getKey();
-					String text = news.getDescription() == null || news.getDescription().isEmpty() ?
-							news.getTitle() : news.getDescription();
+					String text = news.getDescription() == null || news.getDescription().isEmpty() ? news.getTitle() : news.getDescription();
 					List<Phrase> phrases = operator.count(text, language);
 					// descending order
-					phrases.sort((a, b) -> b.getCurrentCount().compareTo(a.getCurrentCount()));
+					phrases.sort(Collections.reverseOrder());
 					for(int i = 0; i < phrases.size(); i++) {
 						// match original
 						Phrase phrase = operator.match(phrases.get(i), language);
@@ -124,9 +127,7 @@ public class LocatorController {
 								if(!news.isMatched() && wikipediaEnabled) {
 									// research
 									String description = operator.research(phrase.getContent());
-									if(description != null &&
-											!description.isEmpty() &&
-											!description.startsWith("Disambiguation")) {
+									if(description != null && !description.isEmpty() && !description.startsWith("Disambiguation")) {
 										List<Phrase> researches = operator.count(description, Language.ENGLISH);
 										for(int j = 0; j < researches.size(); j++) {
 											Phrase research = operator.match(researches.get(j), language);
@@ -142,66 +143,57 @@ public class LocatorController {
 							}
 						}
 					}
-					news.setId(saveNews(news));
+					saveNews(news);
 					for(Phrase phrase : phrases) {
-						phrase.setId(savePhrase(phrase));
-						newsPhraseRepository
-							.save(
-								new BufferNewsPhrase(
-									new BufferNewsPhraseId(
-										news.getId(), phrase.getId()), phrase.getCurrentCount()));
+						savePhrase(phrase);
+						newsPhraseRepository.save(new BufferNewsPhrase(new BufferNewsPhraseId(news.getId(), phrase.getId()), phrase.getCurrentCount()));
 					}
 					// report
 					if(news.isMatched()) {
 						Phrase dummy = new Phrase();
 						dummy.setLocationId(1);
-						if(phrases
-								.stream()
-								.filter(phrase -> phrase.getId() == news.getTopPhraseId())
-								.findFirst()
-								.orElse(dummy)
-								.hasLocation()) {
-							located++;
+						if(phrases.stream().filter(phrase -> phrase.getId() == news.getTopPhraseId()).findFirst().orElse(dummy).hasLocation()) {
+							report.incrementLocated();
 						}
 						else {
-							matched++;
+							report.incrementMatched();
 						}
 					}
 					else {
-						notMatched++;
+						report.incrementNotMatched();
 					}
 				}
+				report.setSuccessful(true);
 			}
-			query = entityManager.createStoredProcedureQuery("update_news");
-			query.execute();
-			log.info("news updated");
+			catch (Exception e) {
+				report.setSuccessful(false);
+				log.error("feedId: " + feed.getId() + " exception: ", e);
+				discord.notify(e);
+			}
+			finally {
+				report.setFinish(System.currentTimeMillis());
+				reports.add(report);
+			}
 		}
-		catch(Exception e) {
-			log.error("exception: ", e);
-			discord.notifyError(e);
-			isSuccessful = false;
-		}
-		long finish = System.currentTimeMillis();
-		log.info("execution time: " + (finish - start) + " ms");
-		String header = "executed in " + (finish - start) + " ms with " + (isSuccessful ? ":white_check_mark:" : ":x:");
-		String info = "**not matched**: " + notMatched + "\\r\\n" +
-				"**matched, not located**: " + matched + "\\r\\n" +
-				"**located**: " + located + "\\r\\n";
-		discord.notifyInfo(header, info);
+
+		// refresh news
+		query = entityManager.createStoredProcedureQuery("update_news");
+		query.execute();
+		log.info("news updated");
+
+		long duration = System.currentTimeMillis() - start;
+		log.info("execution time: " + duration + "ms feedCount: " + feeds.size());
+		discord.notify(reports, duration);
 	}
 	
 	@Transactional
-	public Integer saveNews(BufferNews news) {
-		BufferNews result = news;
-		newsRepository.save(result);
-		return result.getId();
+	public void saveNews(BufferNews news) {
+		newsRepository.save(news);
 	}
 	
 	@Transactional
-	public Integer savePhrase(Phrase phrase) {
-		Phrase result = phrase;
-		phraseRepository.save(result);
-		return result.getId();
+	public void savePhrase(Phrase phrase) {
+		phraseRepository.save(phrase);
 	}
 
 }

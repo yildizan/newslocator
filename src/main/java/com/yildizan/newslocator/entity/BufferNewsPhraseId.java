@@ -1,39 +1,23 @@
 package com.yildizan.newslocator.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.io.Serializable;
 
 import javax.persistence.Embeddable;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Embeddable
 public class BufferNewsPhraseId implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private Integer newsId;
-	private Integer phraseId;
-	
-	public BufferNewsPhraseId() {}
-	
-	public BufferNewsPhraseId(Integer newsId, Integer phraseId) {
-		this.setNewsId(newsId);
-		this.setPhraseId(phraseId);
-	}
-
-	public Integer getNewsId() {
-		return newsId;
-	}
-
-	public void setNewsId(Integer newsId) {
-		this.newsId = newsId;
-	}
-
-	public Integer getPhraseId() {
-		return phraseId;
-	}
-
-	public void setPhraseId(Integer phraseId) {
-		this.phraseId = phraseId;
-	}
+	private int newsId;
+	private int phraseId;
 
 	@Override
 	public int hashCode() {

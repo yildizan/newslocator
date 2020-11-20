@@ -2,7 +2,6 @@ package com.yildizan.newslocator.feed;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +32,7 @@ public class Operator {
     @Autowired
     private PhraseRepository phraseRepository;
 
-    @Value("${wikipedia-endpoint}")
+    @Value("${wikipedia.endpoint}")
     private String wikipediaEndpoint;
 
     private List<Linguistics> englishConjunctions;
@@ -48,8 +47,8 @@ public class Operator {
         XmlReader reader = new XmlReader(url);
         SyndFeed rss = new SyndFeedInput().build(reader);
         int index = 0;
-        for(Iterator<?> iterator = rss.getEntries().iterator(); iterator.hasNext();) {
-            SyndEntry entry = (SyndEntry) iterator.next();
+        for(Object o : rss.getEntries()) {
+            SyndEntry entry = (SyndEntry) o;
             BufferNews news = new BufferNews();
             news.setIndex(index++);
             news.setTitle(StringUtils.cleanCode(entry.getTitle()));
@@ -78,16 +77,14 @@ public class Operator {
 
     // extract proper nouns (word/phrase which starts with capital)
     public List<Phrase> count(String text, int language) {
-        List<Phrase> result = new ArrayList<Phrase>();
+        List<Phrase> result = new ArrayList<>();
 
         String[] words = text.trim().split("\\s+");
         String content = "";
-        boolean endPhrase = false;
+        boolean endPhrase;
         for(int i = 0; i < words.length; i++) {
             String word = words[i];
-            endPhrase = i == words.length - 1 ||
-                    StringUtils.endsWithPunctuation(word) ||
-                    StringUtils.endsWithPossesive(word, language);
+            endPhrase = i == words.length - 1 || StringUtils.endsWithPunctuation(word) || StringUtils.endsWithPossesive(word, language);
 
             if(StringUtils.beginsWithUppercase(word)) {
                 word = StringUtils.cleanSuffix(word, language);
@@ -126,7 +123,6 @@ public class Operator {
                     }
                 }
                 content = "";
-                endPhrase = false;
             }
         }
 
@@ -151,12 +147,11 @@ public class Operator {
         String url = wikipediaEndpoint + text.replace(" ", "%20");
 
         Document document = new SAXBuilder().build(url);
-        Element element = (Element) document
-                .getRootElement()
-                .getChild("query")
-                .getChild("pages")
-                .getChildren("page")
-                .get(0);
+        Element element = (Element) document.getRootElement()
+                                            .getChild("query")
+                                            .getChild("pages")
+                                            .getChildren("page")
+                                            .get(0);
         return element.getAttributeValue("description");
     }
 
@@ -193,18 +188,15 @@ public class Operator {
                         .stream()
                         .filter(e -> e.getType().equals("image/jpeg"))
                         .findFirst()
-                        .get();
+                        .orElseThrow();
                 thumbnailUrl = enclosure.getUrl();
-            }
-            else if(publisherId == Publisher.REUTERS) {
-                thumbnailUrl = null;
             }
             else if(publisherId == Publisher.BBC) {
                 Element element = ((List<Element>) entry.getForeignMarkup())
                         .stream()
                         .filter(e -> e.getName().equals("thumbnail"))
                         .findFirst()
-                        .get();
+                        .orElseThrow();
                 thumbnailUrl = element.getAttributeValue("url");
             }
             else if(publisherId == Publisher.BUZZFEED) {
@@ -217,7 +209,7 @@ public class Operator {
                         .stream()
                         .filter(e -> e.getName().equals("thumbnail"))
                         .findFirst()
-                        .get();
+                        .orElseThrow();
                 thumbnailUrl = element.getAttributeValue("url");
             }
             else if(publisherId == Publisher.NEW_YORK_TIMES) {
@@ -225,7 +217,7 @@ public class Operator {
                         .stream()
                         .filter(e -> e.getName().equals("content"))
                         .findFirst()
-                        .get();
+                        .orElseThrow();
                 thumbnailUrl = element.getAttributeValue("url");
             }
             else if(publisherId == Publisher.FOX_NEWS) {
@@ -233,13 +225,12 @@ public class Operator {
                         .stream()
                         .filter(e -> e.getName().equals("group"))
                         .findFirst()
-                        .get();
+                        .orElseThrow();
                 Element element = ((Element) group.getContent()
                         .stream()
-                        .filter(e -> e instanceof Element &&
-                                ((Element) e).getAttributeValue("isDefault").equals("true"))
+                        .filter(e -> e instanceof Element && ((Element) e).getAttributeValue("isDefault").equals("true"))
                         .findFirst()
-                        .get());
+                        .orElseThrow());
                 thumbnailUrl = element.getAttributeValue("url");
             }
         }

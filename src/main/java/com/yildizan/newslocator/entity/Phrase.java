@@ -1,19 +1,17 @@
 package com.yildizan.newslocator.entity;
 
-import java.util.Date;
-
 import javax.persistence.Column;
-import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 
-import com.yildizan.newslocator.utility.TimeConverter;
+import lombok.Data;
 
+@Data
 @Entity
-public class Phrase {
+public class Phrase implements Comparable<Phrase> {
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -25,71 +23,18 @@ public class Phrase {
 	private String content;
 	
 	@Transient
-	private Integer currentCount;
+	private int currentCount;
 	
-	private Integer totalCount;
-
-	@Column(name = "last_dml_time", insertable = false)
-	@Convert(converter=TimeConverter.class)
-	private Long lastDmlTime;
+	private int totalCount;
 	
 	public Phrase() {
 		currentCount = 1;
 		totalCount = 1;
-		lastDmlTime = new Date().getTime();
 	}
 	
 	public Phrase(String content) {
 		this();
 		this.content = content;
-	}
-	
-	public Integer getId() {
-		return id;
-	}
-	
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
-	public Integer getLocationId() {
-		return locationId;
-	}
-
-	public void setLocationId(Integer locationId) {
-		this.locationId = locationId;
-	}
-
-	public String getContent() {
-		return content;
-	}
-
-	public void setContent(String content) {
-		this.content = content;
-	}
-
-	public Integer getCurrentCount() {
-		return currentCount;
-	}
-
-	public void setCurrentCount(Integer currentCount) {
-		this.currentCount = currentCount;
-	}
-
-	public Integer getTotalCount() {
-		return totalCount;
-	}
-	
-	public void setTotalCount(Integer totalCount) {
-		this.totalCount = totalCount;
-	}
-	
-	public Long getLastDmlTime() {
-		return lastDmlTime;
-	}
-
-	public void setLastDmlTime(Long lastDmlTime) {
-		this.lastDmlTime = lastDmlTime;
 	}
 	
 	public void addCount(int count) {
@@ -112,7 +57,7 @@ public class Phrase {
 			return true;
 		}
 		else if(o instanceof String) {
-			return content.equals((String) o);
+			return content.equals(o);
 		}
 		else if(o instanceof Phrase) {
 			return content.equals(((Phrase) o).getContent());
@@ -125,5 +70,10 @@ public class Phrase {
 	@Override
 	public String toString() {
 		return content;
+	}
+
+	@Override
+	public int compareTo(Phrase o) {
+		return this.currentCount - o.currentCount;
 	}
 }

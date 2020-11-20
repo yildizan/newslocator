@@ -1,14 +1,14 @@
 package com.yildizan.newslocator.utility;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import com.yildizan.newslocator.entity.Language;
 
 public final class StringUtils {
-	
-	private static final List<Character> punctuations = ".,;:!?\"".chars().mapToObj(c -> (char) c).collect(Collectors.toList());
+
+	private static final List<Character> punctuations = Arrays.asList('.', ',', ';', ':', '!', '?', '\"');
 	
 	private StringUtils() {}
 	
@@ -17,17 +17,13 @@ public final class StringUtils {
 		String codeRegex = "<[^>]*>";
 		
 		// extract from cdata
-		cleanString = cleanString.startsWith("<![CDATA[") ?
-				cleanString.substring("<![CDATA[".length(), cleanString.indexOf("]]>")) : cleanString;
+		cleanString = cleanString.startsWith("<![CDATA[") ? cleanString.substring("<![CDATA[".length(), cleanString.indexOf("]]>")) : cleanString;
 				
 		// clean html
-		cleanString = Pattern.compile(".*" + codeRegex + ".*").matcher(cleanString).find() ?
-				cleanString.replaceAll(codeRegex, "") : cleanString;				
+		cleanString = Pattern.compile(".*" + codeRegex + ".*").matcher(cleanString).find() ? cleanString.replaceAll(codeRegex, "") : cleanString;
 		
 		// clean sputnik prefix
-		cleanString = cleanString.contains("(Sputnik) - ") ?
-				cleanString.substring(cleanString.indexOf("(Sputnik) - ") + "(Sputnik) - ".length(),
-						cleanString.length()) : cleanString;
+		cleanString = cleanString.contains("(Sputnik) - ") ? cleanString.substring(cleanString.indexOf("(Sputnik) - ") + "(Sputnik) - ".length()) : cleanString;
 		return cleanString;
 	}
 
@@ -48,9 +44,7 @@ public final class StringUtils {
 	}
 	
 	public static boolean endsWithPunctuation(String string) {
-		return punctuations.contains(string.charAt(string.length() - 1)) &&
-				string.length() > 1 &&
-				!Character.isUpperCase(string.charAt(string.length() - 2));
+		return punctuations.contains(string.charAt(string.length() - 1)) && string.length() > 1 && !Character.isUpperCase(string.charAt(string.length() - 2));
 	}
 	
 	public static boolean endsWithPossesive(String string, int language) {
