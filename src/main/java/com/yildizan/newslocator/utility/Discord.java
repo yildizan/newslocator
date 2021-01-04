@@ -12,8 +12,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 @Component
@@ -38,12 +36,12 @@ public final class Discord {
         new RestTemplate().postForObject(url, request, String.class);
     }
 
-    public void notify(List<Report> reports, long duration) {
+    public void notify(List<Summary> summaries, long duration) {
         int successRate;
-        if(reports.stream().allMatch(Report::isSuccessful)) {
+        if(summaries.stream().allMatch(Summary::isSuccessful)) {
             successRate = SuccessRate.ALL;
         }
-        else if(reports.stream().noneMatch(Report::isSuccessful)) {
+        else if(summaries.stream().noneMatch(Summary::isSuccessful)) {
             successRate = SuccessRate.NONE;
         }
         else {
@@ -57,15 +55,14 @@ public final class Discord {
         embed.put("title", applicationName);
         embed.put("url", applicationUrl);
         embed.put("color", successRate == SuccessRate.ALL ? 3066993 : successRate == SuccessRate.NONE ? 15158332 : 15844367);
-        embed.put("timestamp", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
         embed.put("footer", footer);
 
         if(successRate > SuccessRate.NONE) {
             JSONArray fields = new JSONArray();
-            for(Report report : reports) {
+            for(Summary summary : summaries) {
                 JSONObject field = new JSONObject();
-                field.put("name", ":newspaper: " + stringifyPublisher(report.getFeed().getPublisherId()) + "\t" + (report.isSuccessful() ? ":white_check_mark:" : ":x:") + ' ' + report.getDuration() + "ms");
-                field.put("value", report.getLocated() + " / " + report.getMatched() + " / " + report.getNotMatched());
+                field.put("name", ":newspaper: " + stringifyPublisher(summary.getFeed().getPublisherId()) + "\n" + (summary.isSuccessful() ? ":white_check_mark:" : ":x:") + ' ' + summary.getDuration() + "ms");
+                field.put("value", summary.getLocated() + " / " + summary.getMatched() + " / " + summary.getNotMatched());
                 field.put("inline", true);
                 fields.put(field);
             }

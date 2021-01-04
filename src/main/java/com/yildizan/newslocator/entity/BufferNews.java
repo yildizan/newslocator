@@ -10,6 +10,8 @@ import javax.persistence.Transient;
 import com.yildizan.newslocator.utility.TimeConverter;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @Entity
 public class BufferNews {
@@ -24,12 +26,12 @@ public class BufferNews {
 	private String description;
 	private String link;
 	private String thumbnailUrl;
-	
-	@Transient
-	private Integer index;
 
 	@Convert(converter = TimeConverter.class)
 	private Long publishDate;
+
+	@Transient
+	private List<Phrase> phrases;
 	
 	public boolean isMatched() {
 		return topPhraseId != null && topPhraseId > 0;

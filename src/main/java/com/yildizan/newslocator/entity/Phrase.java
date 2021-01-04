@@ -37,9 +37,9 @@ public class Phrase implements Comparable<Phrase> {
 		this.content = content;
 	}
 	
-	public void addCount(int count) {
-		this.currentCount += count;
-		this.totalCount += count;
+	public void incrementCount() {
+		this.currentCount++;
+		this.totalCount++;
 	}
 	
 	public boolean hasLocation() {

@@ -7,13 +7,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
-@ComponentScan({
-		"com.yildizan.newslocator.controller",
-		"com.yildizan.newslocator.feed",
-		"com.yildizan.newslocator.utility"
-})
-@EntityScan({"com.yildizan.newslocator.entity"})
+@ComponentScan({"com.yildizan.newslocator.controller", "com.yildizan.newslocator.service", "com.yildizan.newslocator.utility" })
 @EnableJpaRepositories({"com.yildizan.newslocator.repository"})
+@EntityScan({"com.yildizan.newslocator.entity"})
 public class NewslocatorApplication {
 
 	public static void main(String[] args) {

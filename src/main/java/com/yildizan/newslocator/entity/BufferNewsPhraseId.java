@@ -30,8 +30,7 @@ public class BufferNewsPhraseId implements Serializable {
 			return true;
 		}
 		else if(o instanceof BufferNewsPhraseId) {
-			return ((BufferNewsPhraseId) o).getNewsId() == this.newsId &&
-					((BufferNewsPhraseId) o).getPhraseId() == this.phraseId;
+			return ((BufferNewsPhraseId) o).getNewsId() == this.newsId && ((BufferNewsPhraseId) o).getPhraseId() == this.phraseId;
 		}
 		else {
 			return false;

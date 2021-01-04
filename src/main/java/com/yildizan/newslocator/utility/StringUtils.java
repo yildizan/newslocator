@@ -35,11 +35,11 @@ public final class StringUtils {
 		while(endsWithPunctuation(cleanString)) {
 			cleanString = cleanString.substring(0, cleanString.length() - 1);
 		}
-		cleanString = endsWithPossesive(cleanString, language) ? cleanString.substring(0, cleanString.lastIndexOf('\'')) : cleanString;
+		cleanString = endsWithPossessive(cleanString, language) ? cleanString.substring(0, cleanString.lastIndexOf('\'')) : cleanString;
 		return cleanString;
 	}
 	
-	public static boolean beginsWithUppercase(String string) {
+	public static boolean startsWithUppercase(String string) {
 		return Character.isUpperCase(string.charAt(0));
 	}
 	
@@ -47,7 +47,7 @@ public final class StringUtils {
 		return punctuations.contains(string.charAt(string.length() - 1)) && string.length() > 1 && !Character.isUpperCase(string.charAt(string.length() - 2));
 	}
 	
-	public static boolean endsWithPossesive(String string, int language) {
+	public static boolean endsWithPossessive(String string, int language) {
 		if(language == Language.ENGLISH) {
 			return string.endsWith("'s") || string.endsWith("s'");
 		}
