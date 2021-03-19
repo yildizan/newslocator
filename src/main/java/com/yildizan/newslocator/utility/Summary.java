@@ -9,10 +9,10 @@ public class Summary {
     private Feed feed;
     private long start;
     private long finish;
-    private boolean isSuccessful;
     private int located;
     private int matched;
     private int notMatched;
+    private Exception exception;
 
     public Summary(Feed feed, long start) {
         this.feed = feed;
@@ -33,6 +33,10 @@ public class Summary {
 
     public long getDuration() {
         return this.finish - this.start;
+    }
+
+    public boolean isSuccessful() {
+        return exception == null;
     }
 
 }

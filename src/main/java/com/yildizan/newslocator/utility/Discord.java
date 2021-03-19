@@ -73,6 +73,7 @@ public final class Discord {
         array.put(embed);
 
         JSONObject message = new JSONObject();
+        message.put("content", successRate == SuccessRate.ALL ? ":white_check_mark: success" : successRate == SuccessRate.NONE ? ":x: error" : ":warning: partial");
         message.put("embeds", array);
 
         send(infoHook, message.toString());

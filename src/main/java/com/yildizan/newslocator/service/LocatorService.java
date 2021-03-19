@@ -7,16 +7,14 @@ import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.XmlReader;
 import com.yildizan.newslocator.entity.*;
 import com.yildizan.newslocator.repository.*;
-import com.yildizan.newslocator.utility.Discord;
 import com.yildizan.newslocator.utility.Summary;
 import com.yildizan.newslocator.utility.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -24,20 +22,18 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.StoredProcedureQuery;
 import javax.transaction.Transactional;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
 public class LocatorService {
 
-    private final Logger infoLogger = LoggerFactory.getLogger("info");
-    private final Logger errorLogger = LoggerFactory.getLogger("error");
-
-    private final FeedRepository feedRepository;
     private final NewsRepository newsRepository;
     private final PhraseRepository phraseRepository;
     private final NewsPhraseRepository newsPhraseRepository;
-    private final Discord discord;
     private final LinguisticsRepository linguisticsRepository;
 
     private List<Linguistics> englishConjunctions;
@@ -52,62 +48,50 @@ public class LocatorService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public void process() {
-        long start = System.currentTimeMillis();
-        List<Summary> summaries = new ArrayList<>();
-        List<Feed> feeds = feedRepository.findActive(); // feeds united
-
-        // dump buffer
-        StoredProcedureQuery query = entityManager.createStoredProcedureQuery("clear_buffer");
-        query.execute();
-        infoLogger.info("buffer clear");
-
-        for(Feed feed : feeds) {
-            Summary summary = new Summary(feed, System.currentTimeMillis());
-            try {
-                // build newspaper from feed
-                List<BufferNews> newsList = read(feed);
-                int language = feed.getLanguageId();
-                for(BufferNews news : newsList) {
-                    locate(news, language);
-                    saveNews(news);
-                    for(Phrase phrase : news.getPhrases()) {
-                        savePhrase(phrase);
-                        newsPhraseRepository.save(new BufferNewsPhrase(new BufferNewsPhraseId(news.getId(), phrase.getId()), phrase.getCurrentCount()));
-                    }
-                    // summary
-                    if(news.isMatched()) {
-                        news.getPhrases()
-                                .stream()
-                                .filter(phrase -> phrase.getId().equals(news.getTopPhraseId()))
-                                .findAny()
-                                .ifPresentOrElse(p -> summary.incrementLocated(), summary::incrementMatched);
-                    }
-                    else {
-                        summary.incrementNotMatched();
-                    }
+    @Async
+    public CompletableFuture<Summary> process(Feed feed) {
+        Summary summary = new Summary(feed, System.currentTimeMillis());
+        try {
+            // build newspaper from feed
+            List<BufferNews> newsList = read(feed);
+            int language = feed.getLanguageId();
+            for(BufferNews news : newsList) {
+                locate(news, language);
+                saveNews(news);
+                for(Phrase phrase : news.getPhrases()) {
+                    savePhrase(phrase);
+                    newsPhraseRepository.save(new BufferNewsPhrase(new BufferNewsPhraseId(news.getId(), phrase.getId()), phrase.getCurrentCount()));
                 }
-                summary.setSuccessful(true);
-            }
-            catch (Exception e) {
-                summary.setSuccessful(false);
-                errorLogger.error("feedId: " + feed.getId() + " exception: ", e);
-                discord.notify(e);
-            }
-            finally {
-                summary.setFinish(System.currentTimeMillis());
-                summaries.add(summary);
+                // summary
+                if(news.isMatched()) {
+                    news.getPhrases()
+                            .stream()
+                            .filter(phrase -> phrase.getId().equals(news.getTopPhraseId()))
+                            .findAny()
+                            .ifPresentOrElse(p -> summary.incrementLocated(), summary::incrementMatched);
+                }
+                else {
+                    summary.incrementNotMatched();
+                }
             }
         }
+        catch (Exception e) {
+            summary.setException(e);
+        }
+        finally {
+            summary.setFinish(System.currentTimeMillis());
+        }
+        return CompletableFuture.completedFuture(summary);
+    }
 
-        // refresh news
-        query = entityManager.createStoredProcedureQuery("update_news");
+    public void clear() {
+        StoredProcedureQuery query = entityManager.createStoredProcedureQuery("clear_buffer");
         query.execute();
-        infoLogger.info("news updated");
+    }
 
-        long duration = System.currentTimeMillis() - start;
-        infoLogger.info("execution time: " + duration + "ms feedCount: " + feeds.size());
-        discord.notify(summaries, duration);
+    public void update() {
+        StoredProcedureQuery query = entityManager.createStoredProcedureQuery("update_news");
+        query.execute();
     }
 
     @Transactional
