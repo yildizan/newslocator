@@ -6,7 +6,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
 @Configuration
-public class FeignConfiguration {
+public class DiscordClientConfiguration {
 
     @Bean
     public HttpMessageConverter<Object> encoder() {

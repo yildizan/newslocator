@@ -1,10 +1,10 @@
 package com.yildizan.newsfrom.locator.runner;
 
+import com.yildizan.newsfrom.locator.dto.SummaryDto;
+import com.yildizan.newsfrom.locator.entity.Feed;
 import com.yildizan.newsfrom.locator.service.DiscordService;
 import com.yildizan.newsfrom.locator.service.FeedService;
 import com.yildizan.newsfrom.locator.service.LocatorService;
-import com.yildizan.newsfrom.locator.dto.SummaryDto;
-import com.yildizan.newsfrom.locator.entity.Feed;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
