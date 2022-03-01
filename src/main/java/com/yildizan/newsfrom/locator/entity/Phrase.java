@@ -1,4 +1,4 @@
-package com.yildizan.newslocator.entity;
+package com.yildizan.newsfrom.locator.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

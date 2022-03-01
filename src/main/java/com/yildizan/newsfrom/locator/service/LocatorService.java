@@ -1,14 +1,17 @@
-package com.yildizan.newslocator.service;
+package com.yildizan.newsfrom.locator.service;
 
 import com.sun.syndication.feed.synd.SyndEnclosure;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.XmlReader;
-import com.yildizan.newslocator.entity.*;
-import com.yildizan.newslocator.repository.*;
-import com.yildizan.newslocator.utility.Summary;
-import com.yildizan.newslocator.utility.StringUtils;
+import com.yildizan.newsfrom.locator.entity.*;
+import com.yildizan.newsfrom.locator.repository.LinguisticsRepository;
+import com.yildizan.newsfrom.locator.repository.NewsPhraseRepository;
+import com.yildizan.newsfrom.locator.repository.NewsRepository;
+import com.yildizan.newsfrom.locator.repository.PhraseRepository;
+import com.yildizan.newsfrom.locator.utility.StringUtils;
+import com.yildizan.newsfrom.locator.utility.Summary;
 import lombok.RequiredArgsConstructor;
 import org.jdom.Document;
 import org.jdom.Element;

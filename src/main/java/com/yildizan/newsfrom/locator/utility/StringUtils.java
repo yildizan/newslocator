@@ -1,10 +1,10 @@
-package com.yildizan.newslocator.utility;
+package com.yildizan.newsfrom.locator.utility;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import com.yildizan.newslocator.entity.Language;
+import com.yildizan.newsfrom.locator.entity.Language;
 
 public final class StringUtils {
 

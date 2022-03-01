@@ -1,4 +1,4 @@
-package com.yildizan.newslocator.entity;
+package com.yildizan.newsfrom.locator.entity;
 
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -7,7 +7,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 
-import com.yildizan.newslocator.utility.TimeConverter;
+import com.yildizan.newsfrom.locator.utility.TimeConverter;
 import lombok.Data;
 
 import java.util.List;

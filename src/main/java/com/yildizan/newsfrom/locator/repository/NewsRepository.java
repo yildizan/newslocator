@@ -1,6 +1,6 @@
-package com.yildizan.newslocator.repository;
+package com.yildizan.newsfrom.locator.repository;
 
-import com.yildizan.newslocator.entity.BufferNews;
+import com.yildizan.newsfrom.locator.entity.BufferNews;
 
 import org.springframework.data.repository.CrudRepository;
 

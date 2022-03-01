@@ -1,4 +1,4 @@
-package com.yildizan.newslocator.utility;
+package com.yildizan.newsfrom.locator.utility;
 
 import java.sql.Timestamp;
 

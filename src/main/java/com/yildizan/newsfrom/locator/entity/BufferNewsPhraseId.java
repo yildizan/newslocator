@@ -1,4 +1,4 @@
-package com.yildizan.newslocator.entity;
+package com.yildizan.newsfrom.locator.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

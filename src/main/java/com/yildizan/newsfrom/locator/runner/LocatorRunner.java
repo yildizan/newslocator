@@ -1,10 +1,10 @@
-package com.yildizan.newslocator.runner;
+package com.yildizan.newsfrom.locator.runner;
 
-import com.yildizan.newslocator.entity.Feed;
-import com.yildizan.newslocator.service.FeedService;
-import com.yildizan.newslocator.service.LocatorService;
-import com.yildizan.newslocator.utility.Discord;
-import com.yildizan.newslocator.utility.Summary;
+import com.yildizan.newsfrom.locator.service.FeedService;
+import com.yildizan.newsfrom.locator.service.LocatorService;
+import com.yildizan.newsfrom.locator.utility.Discord;
+import com.yildizan.newsfrom.locator.utility.Summary;
+import com.yildizan.newsfrom.locator.entity.Feed;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

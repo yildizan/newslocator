@@ -1,6 +1,6 @@
-package com.yildizan.newslocator.repository;
+package com.yildizan.newsfrom.locator.repository;
 
-import com.yildizan.newslocator.entity.Phrase;
+import com.yildizan.newsfrom.locator.entity.Phrase;
 
 import java.util.Optional;
 

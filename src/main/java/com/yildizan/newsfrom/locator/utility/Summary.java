@@ -1,6 +1,6 @@
-package com.yildizan.newslocator.utility;
+package com.yildizan.newsfrom.locator.utility;
 
-import com.yildizan.newslocator.entity.Feed;
+import com.yildizan.newsfrom.locator.entity.Feed;
 import lombok.Data;
 
 @Data

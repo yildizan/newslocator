@@ -1,7 +1,7 @@
-package com.yildizan.newslocator.service;
+package com.yildizan.newsfrom.locator.service;
 
-import com.yildizan.newslocator.entity.Feed;
-import com.yildizan.newslocator.repository.FeedRepository;
+import com.yildizan.newsfrom.locator.entity.Feed;
+import com.yildizan.newsfrom.locator.repository.FeedRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

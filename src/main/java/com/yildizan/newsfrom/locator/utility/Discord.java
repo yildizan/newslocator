@@ -1,6 +1,6 @@
-package com.yildizan.newslocator.utility;
+package com.yildizan.newsfrom.locator.utility;
 
-import com.yildizan.newslocator.entity.Publisher;
+import com.yildizan.newsfrom.locator.entity.Publisher;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;

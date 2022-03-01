@@ -1,6 +1,6 @@
-package com.yildizan.newslocator.repository;
+package com.yildizan.newsfrom.locator.repository;
 
-import com.yildizan.newslocator.entity.Feed;
+import com.yildizan.newsfrom.locator.entity.Feed;
 
 import java.util.List;
 

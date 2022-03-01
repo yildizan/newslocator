@@ -1,11 +1,11 @@
-package com.yildizan.newslocator.repository;
+package com.yildizan.newsfrom.locator.repository;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
 
-import com.yildizan.newslocator.entity.Linguistics;
+import com.yildizan.newsfrom.locator.entity.Linguistics;
 
 public interface LinguisticsRepository extends CrudRepository<Linguistics, Integer> {
 
