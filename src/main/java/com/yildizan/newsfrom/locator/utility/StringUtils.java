@@ -58,4 +58,9 @@ public final class StringUtils {
 			throw new UnsupportedOperationException();
 		}
 	}
+
+	public static String wrapWith(String string, String wrapper) {
+		return wrapper + string + wrapper;
+	}
+
 }

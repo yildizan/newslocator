@@ -11,7 +11,7 @@ import com.yildizan.newsfrom.locator.repository.NewsPhraseRepository;
 import com.yildizan.newsfrom.locator.repository.NewsRepository;
 import com.yildizan.newsfrom.locator.repository.PhraseRepository;
 import com.yildizan.newsfrom.locator.utility.StringUtils;
-import com.yildizan.newsfrom.locator.utility.Summary;
+import com.yildizan.newsfrom.locator.dto.SummaryDto;
 import lombok.RequiredArgsConstructor;
 import org.jdom.Document;
 import org.jdom.Element;
@@ -42,7 +42,7 @@ public class LocatorService {
     private List<Linguistics> englishConjunctions;
     private List<Linguistics> englishExceptions;
 
-    @Value("${wikipedia.endpoint}")
+    @Value("${wikipedia.url}")
     private String wikipediaEndpoint;
 
     @Value("${wikipedia.enabled}")
@@ -52,8 +52,8 @@ public class LocatorService {
     private EntityManager entityManager;
 
     @Async
-    public CompletableFuture<Summary> process(Feed feed) {
-        Summary summary = new Summary(feed, System.currentTimeMillis());
+    public CompletableFuture<SummaryDto> process(Feed feed) {
+        SummaryDto summary = new SummaryDto(feed, System.currentTimeMillis());
         try {
             // build newspaper from feed
             List<BufferNews> newsList = read(feed);

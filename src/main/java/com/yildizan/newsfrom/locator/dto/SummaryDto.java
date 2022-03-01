@@ -1,10 +1,10 @@
-package com.yildizan.newsfrom.locator.utility;
+package com.yildizan.newsfrom.locator.dto;
 
 import com.yildizan.newsfrom.locator.entity.Feed;
 import lombok.Data;
 
 @Data
-public class Summary {
+public class SummaryDto {
 
     private Feed feed;
     private long start;
@@ -14,7 +14,7 @@ public class Summary {
     private int notMatched;
     private Exception exception;
 
-    public Summary(Feed feed, long start) {
+    public SummaryDto(Feed feed, long start) {
         this.feed = feed;
         this.start = start;
     }
