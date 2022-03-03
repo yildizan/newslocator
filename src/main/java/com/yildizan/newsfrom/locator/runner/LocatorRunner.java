@@ -25,20 +25,24 @@ public class LocatorRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        log.info("clearing buffer...");
         bufferService.clearBuffer();
-        log.info("buffer cleared");
+        log.info("cleared buffer");
 
+        log.info("processing...");
         List<SummaryDto> summaries = new ArrayList<>();
         feedService.findActiveFeeds()
                 .parallelStream()
                 .forEach(feed -> summaries.add(locatorService.process(feed)));
-        log.info("process completed");
+        log.info("processed");
 
+        log.info("updating news...");
         bufferService.updateNews();
-        log.info("news updated");
+        log.info("updated news");
 
+        log.info("notifying...");
         discordService.notify(summaries);
-        log.info("discord notified");
+        log.info("notified");
     }
 
 }
