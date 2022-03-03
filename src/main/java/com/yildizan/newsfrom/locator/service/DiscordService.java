@@ -1,16 +1,19 @@
 package com.yildizan.newsfrom.locator.service;
 
 import com.yildizan.newsfrom.locator.client.DiscordClient;
-import com.yildizan.newsfrom.locator.dto.discord.*;
-import com.yildizan.newsfrom.locator.utility.DiscordEmojis;
-import com.yildizan.newsfrom.locator.utility.StringUtils;
 import com.yildizan.newsfrom.locator.dto.SummaryDto;
+import com.yildizan.newsfrom.locator.dto.discord.EmbedDto;
+import com.yildizan.newsfrom.locator.dto.discord.ErrorFileDto;
+import com.yildizan.newsfrom.locator.dto.discord.FieldDto;
+import com.yildizan.newsfrom.locator.dto.discord.FooterDto;
+import com.yildizan.newsfrom.locator.dto.discord.InfoDto;
+import com.yildizan.newsfrom.locator.utility.DiscordEmojis;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,14 +34,14 @@ public class DiscordService {
         long duration = 0L;
 
         for (SummaryDto summary : summaries) {
-            if (!summary.isSuccessful()) {
-                notify(summary.getException());
-            }
-
             duration += summary.getDuration();
             String publisherName = summary.getFeed()
                     .getPublisher()
                     .getName();
+
+            if (!summary.isSuccessful()) {
+                notify(summary.getException(), publisherName);
+            }
 
             FieldDto field = new FieldDto();
             field.setName((summary.isSuccessful() ? DiscordEmojis.CHECK_MARK : DiscordEmojis.CROSS) + ' ' + publisherName);
@@ -53,17 +56,12 @@ public class DiscordService {
         discordClient.notifyInfo(dto);
     }
 
-    private void notify(Exception e) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
+    private void notify(Exception e, String publisherName) {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(os);
+        e.printStackTrace(ps);
 
-        String stackTrace = sw.toString()
-                .replace("\t", "")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r");
-
-        discordClient.notifyError(new ErrorDto(StringUtils.wrapWith(stackTrace, "```")));
+        discordClient.notifyError(new ErrorFileDto(os.toByteArray(), "files[0]", publisherName + ".txt"));
     }
 
 }
