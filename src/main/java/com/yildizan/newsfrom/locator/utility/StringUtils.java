@@ -2,15 +2,17 @@ package com.yildizan.newsfrom.locator.utility;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import com.yildizan.newsfrom.locator.entity.Language;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class StringUtils {
 
 	private static final List<Character> punctuations = Arrays.asList('.', ',', ';', ':', '!', '?', '\"');
-	
-	private StringUtils() {}
 	
 	public static String cleanCode(String string) {
 		String cleanString = string.trim();
@@ -27,7 +29,7 @@ public final class StringUtils {
 		return cleanString;
 	}
 
-	public static String cleanSuffix(String string, int language) {
+	public static String cleanSuffix(String string, Language language) {
 		String cleanString = string
 				.replace('`', '\'')
 				.replace('’', '\'')
@@ -47,20 +49,34 @@ public final class StringUtils {
 		return punctuations.contains(string.charAt(string.length() - 1)) && string.length() > 1 && !Character.isUpperCase(string.charAt(string.length() - 2));
 	}
 	
-	public static boolean endsWithPossessive(String string, int language) {
-		if(language == Language.ENGLISH) {
+	public static boolean endsWithPossessive(String string, Language language) {
+		if (language.isEnglish()) {
 			return string.endsWith("'s") || string.endsWith("s'");
-		}
-		else if(language == Language.TURKISH) {
+		} else if (language.isTurkish()) {
 			return endsWithPunctuation(string);
-		}
-		else {
-			throw new UnsupportedOperationException();
+		} else {
+			throw new IllegalArgumentException("unsupported language: " + language.getCode());
 		}
 	}
 
 	public static String wrapWith(String string, String wrapper) {
 		return wrapper + string + wrapper;
+	}
+
+	public static String emptyString() {
+		return "";
+	}
+
+	public static String[] splitBySpace(String string) {
+		return string.split("\\s+");
+	}
+
+	public static boolean isEmpty(String string) {
+		return Objects.isNull(string) || string.isEmpty();
+	}
+
+	public static boolean isNotEmpty(String string) {
+		return !isEmpty(string);
 	}
 
 }
