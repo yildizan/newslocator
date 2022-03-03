@@ -31,10 +31,17 @@ public class DiscordService {
         long duration = 0L;
 
         for (SummaryDto summary : summaries) {
+            if (!summary.isSuccessful()) {
+                notify(summary.getException());
+            }
+
             duration += summary.getDuration();
+            String publisherName = summary.getFeed()
+                    .getPublisher()
+                    .getName();
 
             FieldDto field = new FieldDto();
-            field.setName((summary.isSuccessful() ? DiscordEmojis.CHECK_MARK : DiscordEmojis.CROSS) + summary.getFeed().getId());
+            field.setName((summary.isSuccessful() ? DiscordEmojis.CHECK_MARK : DiscordEmojis.CROSS) + ' ' + publisherName);
             field.setValue(summary.getLocated() + " / " + summary.getMatched() + " / " + summary.getNotMatched());
 
             embed.getFields().add(field);
@@ -46,8 +53,7 @@ public class DiscordService {
         discordClient.notifyInfo(dto);
     }
 
-
-    public void notify(Exception e) {
+    private void notify(Exception e) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
