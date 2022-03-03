@@ -13,8 +13,8 @@ public class FeedService {
 
     private final FeedRepository feedRepository;
 
-    public List<Feed> listActiveFeeds() {
-        return feedRepository.findActive();
+    public List<Feed> findActiveFeeds() {
+        return feedRepository.findActiveFeeds();
     }
 
 }

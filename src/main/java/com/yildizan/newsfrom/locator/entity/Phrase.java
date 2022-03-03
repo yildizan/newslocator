@@ -1,68 +1,66 @@
 package com.yildizan.newsfrom.locator.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.Objects;
 
 @Data
 @Entity
+@NoArgsConstructor
 public class Phrase implements Comparable<Phrase> {
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-	
-	private Integer locationId;
+
+	@ManyToOne
+	@JoinColumn(name = "location_id")
+	private Location location;
 	
 	@Column(name = "content", updatable = false)
 	private String content;
 	
+	private int totalCount;
+
 	@Transient
 	private int currentCount;
 	
-	private int totalCount;
-	
-	public Phrase() {
-		currentCount = 1;
-		totalCount = 1;
-	}
-	
 	public Phrase(String content) {
-		this();
+		this.currentCount = 1;
+		this.totalCount = 0;
 		this.content = content;
 	}
 	
 	public void incrementCount() {
-		this.currentCount++;
-		this.totalCount++;
+		currentCount++;
 	}
 	
-	public boolean hasLocation() {
-		return this.locationId != null && this.locationId > 0;
+	public boolean isLocated() {
+		return Objects.nonNull(location);
 	}
 
-	@Override
-	public int hashCode() {
-		return id ^ locationId;
+	public void merge(Phrase phrase) {
+		id = phrase.getId();
+		location = phrase.getLocation();
+		totalCount = phrase.getTotalCount();
+	}
+
+	public void mergeCount() {
+		totalCount += currentCount;
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		if(o == this) {
+		if (o == this) {
 			return true;
-		}
-		else if(o instanceof String) {
+		} else if (o instanceof String) {
 			return content.equals(o);
-		}
-		else if(o instanceof Phrase) {
+		} else if (o instanceof Phrase) {
 			return content.equals(((Phrase) o).getContent());
-		}
-		else {
+		} else {
 			return false;
 		}
 	}

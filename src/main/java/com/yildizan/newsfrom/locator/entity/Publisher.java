@@ -1,14 +1,45 @@
 package com.yildizan.newsfrom.locator.entity;
 
+import lombok.Data;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
+@Data
+@Entity
 public class Publisher {
 
-    // supported publishers
-    public static final int SPUTNIK = 1;
-    public static final int REUTERS = 2;
-    public static final int BBC = 3;
-    public static final int BUZZFEED = 4;
-    public static final int WASHINGTON_POST = 5;
-    public static final int NEW_YORK_TIMES = 6;
-    public static final int FOX_NEWS = 7;
+    @Id
+    private Integer id;
+
+    private String name;
+
+    public boolean isSputnik() {
+        return id == 1;
+    }
+
+    public boolean isReuters() {
+        return id == 2;
+    }
+
+    public boolean isBbc() {
+        return id == 3;
+    }
+
+    public boolean isBuzzFeed() {
+        return id == 4;
+    }
+
+    public boolean isWashingtonPost() {
+        return id == 5;
+    }
+
+    public boolean isNewYorkTimes() {
+        return id == 6;
+    }
+
+    public boolean isFoxNews() {
+        return id == 7;
+    }
 
 }

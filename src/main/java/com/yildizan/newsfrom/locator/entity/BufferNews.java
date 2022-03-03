@@ -1,27 +1,19 @@
 package com.yildizan.newsfrom.locator.entity;
 
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Transient;
-
 import com.yildizan.newsfrom.locator.utility.TimeConverter;
 import lombok.Data;
 
-import java.util.List;
+import javax.persistence.*;
+import java.util.Objects;
 
 @Data
 @Entity
 public class BufferNews {
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-	
-	private int feedId;
-	private Integer topPhraseId;
+
 	private String title;
 	private String description;
 	private String link;
@@ -30,10 +22,20 @@ public class BufferNews {
 	@Convert(converter = TimeConverter.class)
 	private Long publishDate;
 
-	@Transient
-	private List<Phrase> phrases;
-	
+	@ManyToOne
+	@JoinColumn(name = "feed_id")
+	private Feed feed;
+
+	@ManyToOne
+	@JoinColumn(name = "top_phrase_id")
+	private Phrase topPhrase;
+
 	public boolean isMatched() {
-		return topPhraseId != null && topPhraseId > 0;
+		return Objects.nonNull(topPhrase);
 	}
+	
+	public boolean isLocated() {
+		return isMatched() && topPhrase.isLocated();
+	}
+
 }

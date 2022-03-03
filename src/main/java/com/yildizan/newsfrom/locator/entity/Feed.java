@@ -1,9 +1,6 @@
 package com.yildizan.newsfrom.locator.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 import lombok.Data;
 
@@ -12,13 +9,17 @@ import lombok.Data;
 public class Feed {
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	private int id;
+	private Integer id;
 
-	private int publisherId;
-	private int categoryId;
-	private int languageId;
+	@ManyToOne
+	@JoinColumn(name = "publisher_id")
+	private Publisher publisher;
+
+	@ManyToOne
+	@JoinColumn(name = "language_id")
+	private Language language;
+
 	private String url;
-	private int isActive;
+	private boolean isActive;
 
 }

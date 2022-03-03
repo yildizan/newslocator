@@ -11,15 +11,18 @@ import lombok.Data;
 @Entity
 public class Language {
 
-	// supported languages
-	public static final int TURKISH = 168;
-	public static final int ENGLISH = 40;
-
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	private int id;
+	private Integer id;
 	
 	private String name;
 	private String code;
+
+	public boolean isTurkish() {
+		return code.equals("tr");
+	}
+
+	public boolean isEnglish() {
+		return code.equals("en");
+	}
 
 }

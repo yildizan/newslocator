@@ -9,7 +9,7 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface FeedRepository extends CrudRepository<Feed, Integer> {
 	
-	@Query("select f from Feed f where f.isActive = 1")
-	List<Feed> findActive();
+	@Query("select f from Feed f where f.isActive = true")
+	List<Feed> findActiveFeeds();
 	
 }

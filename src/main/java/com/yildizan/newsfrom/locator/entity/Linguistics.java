@@ -1,9 +1,6 @@
 package com.yildizan.newsfrom.locator.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 import lombok.Data;
 
@@ -12,28 +9,26 @@ import lombok.Data;
 public class Linguistics {
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	
-	private int typeId;
-	private int languageId;
+
 	private String word;
 
-	@Override
-	public int hashCode() {
-		return id ^ typeId ^ languageId;
-	}
+	@ManyToOne
+	@JoinColumn(name = "language_id")
+	private Language language;
+
+	@Enumerated(EnumType.STRING)
+	private LinguisticsType linguisticsType;
 
 	@Override
 	public boolean equals(Object o) {
-		if(o == this) {
+		if (o == this) {
 			return true;
-		}
-		else if(!(o instanceof Linguistics)) {
-			return false;
-		}
-		else {
+		} else if (o instanceof Linguistics) {
 			return word.equals(((Linguistics) o).getWord());
+		} else {
+			return false;
 		}
 	}
 }
