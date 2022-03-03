@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +18,7 @@ public class PhraseService {
 
     private final PhraseRepository phraseRepository;
     private final LinguisticsService linguisticsService;
+    private final CacheablePhraseService cacheablePhraseService;
 
     public void save(Phrase phrase) {
         phraseRepository.save(phrase);
@@ -29,7 +29,10 @@ public class PhraseService {
             return;
         }
 
-        phraseRepository.findByContent(phrase.getContent()).ifPresent(phrase::merge);
+        Phrase result = cacheablePhraseService.find(phrase.getContent());
+        if (Objects.nonNull(result)) {
+            phrase.merge(result);
+        }
     }
 
     public List<Phrase> extract(BufferNews news, Language language) {

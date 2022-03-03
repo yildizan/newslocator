@@ -25,24 +25,40 @@ public class LocatorRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        long tick = System.currentTimeMillis();
         log.info("clearing buffer...");
-        bufferService.clearBuffer();
-        log.info("cleared buffer");
 
+        bufferService.clearBuffer();
+
+        long tock = System.currentTimeMillis();
+        log.info(String.format("cleared buffer in %d ms", tock - tick));
+
+        tick = System.currentTimeMillis();
         log.info("processing...");
+
         List<SummaryDto> summaries = new ArrayList<>();
         feedService.findActiveFeeds()
                 .parallelStream()
                 .forEach(feed -> summaries.add(locatorService.process(feed)));
-        log.info("processed");
 
+        tock = System.currentTimeMillis();
+        log.info(String.format("processed in %d ms", tock - tick));
+
+        tick = System.currentTimeMillis();
         log.info("updating news...");
-        bufferService.updateNews();
-        log.info("updated news");
 
+        bufferService.updateNews();
+
+        tock = System.currentTimeMillis();
+        log.info(String.format("updated news in %d ms", tock - tick));
+
+        tick = System.currentTimeMillis();
         log.info("notifying...");
+
         discordService.notify(summaries);
-        log.info("notified");
+
+        tock = System.currentTimeMillis();
+        log.info(String.format("notified in %d ms", tock - tick));
     }
 
 }
