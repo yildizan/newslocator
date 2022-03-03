@@ -16,6 +16,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 @RequiredArgsConstructor
@@ -31,10 +32,10 @@ public class DiscordService {
 
     public void notify(List<SummaryDto> summaries) {
         EmbedDto embed = new EmbedDto(applicationName, applicationUrl);
-        long duration = 0L;
+        AtomicLong duration = new AtomicLong(0L);
 
-        for (SummaryDto summary : summaries) {
-            duration += summary.getDuration();
+        summaries.parallelStream().forEach(summary -> {
+            duration.addAndGet(summary.getDuration());
             String publisherName = summary.getFeed()
                     .getPublisher()
                     .getName();
@@ -48,7 +49,7 @@ public class DiscordService {
             field.setValue(summary.getLocated() + " / " + summary.getMatched() + " / " + summary.getNotMatched());
 
             embed.getFields().add(field);
-        }
+        });
 
         embed.setFooter(new FooterDto(duration + " ms"));
         InfoDto dto = new InfoDto(Collections.singletonList(embed));
