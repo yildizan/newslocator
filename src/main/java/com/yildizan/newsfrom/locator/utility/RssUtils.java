@@ -1,35 +1,32 @@
 package com.yildizan.newsfrom.locator.utility;
 
-import com.sun.syndication.feed.synd.SyndEnclosure;
-import com.sun.syndication.feed.synd.SyndEntry;
-import com.sun.syndication.feed.synd.SyndFeed;
-import com.sun.syndication.io.FeedException;
-import com.sun.syndication.io.SyndFeedInput;
-import com.sun.syndication.io.XmlReader;
+import com.rometools.rome.feed.synd.SyndEnclosure;
+import com.rometools.rome.feed.synd.SyndEntry;
+import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.io.SyndFeedInput;
+import com.rometools.rome.io.XmlReader;
 import com.yildizan.newsfrom.locator.entity.BufferNews;
 import com.yildizan.newsfrom.locator.entity.Feed;
 import com.yildizan.newsfrom.locator.entity.Publisher;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.jdom.Element;
+import org.jdom2.Element;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-@SuppressWarnings("unchecked")
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RssUtils {
 
-    public static List<BufferNews> read(Feed feed) throws IOException, FeedException {
+    public static List<BufferNews> read(Feed feed) throws Exception {
         List<BufferNews> newsList = new ArrayList<>();
 
         URL url = new URL(feed.getUrl());
-        XmlReader reader = new XmlReader(url);
-        SyndFeed rss = new SyndFeedInput().build(reader);
-        for (SyndEntry entry : (List<SyndEntry>) rss.getEntries()) {
+        SyndFeedInput input = new SyndFeedInput();
+        SyndFeed rss = input.build(new XmlReader(url));
+        for (SyndEntry entry : rss.getEntries()) {
             BufferNews news = new BufferNews();
             news.setTitle(StringUtils.cleanCode(entry.getTitle()));
             news.setLink(entry.getLink());
@@ -55,14 +52,14 @@ public final class RssUtils {
     private static String extractThumbnail(SyndEntry entry, Publisher publisher) {
         try {
             if (publisher.isSputnik()) {
-                SyndEnclosure enclosure = ((List<SyndEnclosure>) entry.getEnclosures())
+                SyndEnclosure enclosure = entry.getEnclosures()
                         .stream()
                         .filter(e -> e.getType().equals("image/jpeg"))
                         .findFirst()
                         .orElseThrow();
                 return enclosure.getUrl();
             } else if (publisher.isBbc()) {
-                Element element = ((List<Element>) entry.getForeignMarkup())
+                Element element = entry.getForeignMarkup()
                         .stream()
                         .filter(e -> e.getName().equals("thumbnail"))
                         .findFirst()
@@ -73,21 +70,21 @@ public final class RssUtils {
                 int index = description.indexOf("src=\"", description.indexOf("<img ")) + "src=\"".length();
                 return description.substring(index, description.indexOf("\"", index + 1));
             } else if (publisher.isWashingtonPost()) {
-                Element element = ((List<Element>) entry.getForeignMarkup())
+                Element element = entry.getForeignMarkup()
                         .stream()
                         .filter(e -> e.getName().equals("thumbnail"))
                         .findFirst()
                         .orElseThrow();
                 return element.getAttributeValue("url");
             } else if (publisher.isNewYorkTimes()) {
-                Element element = ((List<Element>) entry.getForeignMarkup())
+                Element element = entry.getForeignMarkup()
                         .stream()
                         .filter(e -> e.getName().equals("content"))
                         .findFirst()
                         .orElseThrow();
                 return element.getAttributeValue("url");
             } else if (publisher.isFoxNews()) {
-                Element group = ((List<Element>) entry.getForeignMarkup())
+                Element group = entry.getForeignMarkup()
                         .stream()
                         .filter(e -> e.getName().equals("group"))
                         .findFirst()

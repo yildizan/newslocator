@@ -48,11 +48,11 @@ public class LocatorService {
             return;
         }
 
-        log.info("publisher: " + news.getFeed().getPublisher().getName());
-        log.info("title: " + news.getTitle());
-        log.info("description: " + news.getDescription());
-        log.info("phrases: " + phrases.stream().map(Phrase::getContent).collect(Collectors.joining(", ")));
-        log.info("\r\n");
+        log.debug("publisher: " + news.getFeed().getPublisher().getName());
+        log.debug("title: " + news.getTitle());
+        log.debug("description: " + news.getDescription());
+        log.debug("phrases: " + phrases.stream().map(Phrase::getContent).collect(Collectors.joining(", ")));
+        log.debug("\r\n");
 
         // descending order
         phrases.sort(Collections.reverseOrder());

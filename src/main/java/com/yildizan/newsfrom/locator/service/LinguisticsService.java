@@ -23,7 +23,7 @@ public class LinguisticsService {
     public boolean isConjunction(String string, Language language) {
         if (language.isEnglish()) {
             if (Objects.isNull(englishConjunctions)) {
-                englishConjunctions = linguisticsRepository.findByLanguageAndLinguisticsType(language, LinguisticsType.CONJUNCTION)
+                englishConjunctions = linguisticsRepository.findByLanguageCodeAndLinguisticsType(language.getCode(), LinguisticsType.CONJUNCTION)
                         .stream()
                         .map(Linguistics::getWord)
                         .collect(Collectors.toSet());
@@ -37,7 +37,7 @@ public class LinguisticsService {
     public boolean isException(String string, Language language) {
         if (language.isEnglish()) {
             if (Objects.isNull(englishExceptions)) {
-                englishExceptions = linguisticsRepository.findByLanguageAndLinguisticsType(language, LinguisticsType.EXCEPTION)
+                englishExceptions = linguisticsRepository.findByLanguageCodeAndLinguisticsType(language.getCode(), LinguisticsType.EXCEPTION)
                         .stream()
                         .map(Linguistics::getWord)
                         .collect(Collectors.toSet());

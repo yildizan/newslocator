@@ -14,7 +14,7 @@ import org.springframework.web.client.RestTemplate;
 public class DiscordClientConfiguration {
 
     @Bean
-    public HttpMessageConverter<Object> encoder() {
+    public HttpMessageConverter<Object> jsonEncoder() {
         return new MappingJackson2HttpMessageConverter();
     }
 
