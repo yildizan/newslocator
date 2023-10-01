@@ -22,9 +22,17 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class LocatorService {
 
+    private final FeedService feedService;
     private final NewsService newsService;
     private final PhraseService phraseService;
     private final WikipediaService wikipediaService;
+
+    public List<SummaryDto> bulkProcess() {
+        return feedService.findActiveFeeds()
+            .parallelStream()
+            .map(this::process)
+            .toList();
+    }
 
     public SummaryDto process(Feed feed)  {
         SummaryDto summary = new SummaryDto(feed, System.currentTimeMillis());
@@ -52,8 +60,7 @@ public class LocatorService {
         log.debug("publisher: " + news.getFeed().getPublisher().getName());
         log.debug("title: " + news.getTitle());
         log.debug("description: " + news.getDescription());
-        log.debug("phrases: " + phrases.stream().map(Phrase::getContent).collect(Collectors.joining(", ")));
-        log.debug("\r\n");
+        log.debug("phrases: " + phrases.stream().map(Phrase::getContent).collect(Collectors.joining(", ")) + "\r\n");
 
         // descending order
         phrases.sort(Collections.reverseOrder());
@@ -116,7 +123,7 @@ public class LocatorService {
             phraseService.save(news.getPhrase());
             summary.incrementMatched();
         } else {
-            summary.incrementNotMatched();
+            summary.incrementNone();
         }
         newsService.save(news);
     }
