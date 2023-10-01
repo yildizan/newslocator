@@ -3,18 +3,19 @@ package com.yildizan.newsfrom.locator.service;
 import com.yildizan.newsfrom.locator.dto.SummaryDto;
 import com.yildizan.newsfrom.locator.entity.BufferNews;
 import com.yildizan.newsfrom.locator.entity.Feed;
-import com.yildizan.newsfrom.locator.entity.Language;
 import com.yildizan.newsfrom.locator.entity.Phrase;
 import com.yildizan.newsfrom.locator.utility.RssUtils;
 import com.yildizan.newsfrom.locator.utility.StringUtils;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -30,7 +31,7 @@ public class LocatorService {
         try {
             List<BufferNews> newsList = RssUtils.read(feed);
             for (BufferNews news : newsList) {
-                locate(news, feed.getLanguage());
+                locate(news);
                 save(news, summary);
             }
         } catch (Exception e) {
@@ -42,8 +43,8 @@ public class LocatorService {
         return summary;
     }
 
-    private void locate(BufferNews news, Language language) {
-        List<Phrase> phrases = phraseService.extract(news, language);
+    private void locate(BufferNews news) {
+        List<Phrase> phrases = phraseService.extract(news);
         if (phrases.isEmpty()) {
             return;
         }
@@ -59,7 +60,7 @@ public class LocatorService {
         news.setTopPhrase(phrases.get(0));
         for (Phrase phrase : phrases) {
             // match original
-            phraseService.match(phrase, language);
+            phraseService.match(phrase);
             phrase.mergeCount();
             if (!news.isLocated() && phrase.isLocated()) {
                 news.setTopPhrase(phrase);
@@ -72,7 +73,7 @@ public class LocatorService {
                     .collect(Collectors.toList());
             for (int j = 0; j < words.size() && words.size() > 1; j++) {
                 Phrase child = new Phrase(words.get(j));
-                phraseService.match(child, language);
+                phraseService.match(child);
                 if (child.isLocated()) {
                     news.setTopPhrase(phrase);
                     phrase.setLocation(child.getLocation());
@@ -82,7 +83,7 @@ public class LocatorService {
                 // match by appending
                 for (int k = j + 1; k < words.size(); k++) {
                     child = new Phrase(child.getContent() + ' ' + words.get(k));
-                    phraseService.match(child, language);
+                    phraseService.match(child);
                     if (child.isLocated()) {
                         news.setTopPhrase(child);
                         phrase.setLocation(child.getLocation());
@@ -94,9 +95,9 @@ public class LocatorService {
             // match by research
             String description = wikipediaService.research(phrase.getContent());
             if (StringUtils.isNotEmpty(description)) {
-                List<Phrase> researches = phraseService.extract(description, language);
+                List<Phrase> researches = phraseService.extract(description);
                 for (Phrase research : researches) {
-                    phraseService.match(research, language);
+                    phraseService.match(research);
                     if (research.isLocated()) {
                         news.setTopPhrase(phrase);
                         phrase.setLocation(research.getLocation());

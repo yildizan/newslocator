@@ -1,55 +1,43 @@
 package com.yildizan.newsfrom.locator.service;
 
-import com.yildizan.newsfrom.locator.entity.Language;
 import com.yildizan.newsfrom.locator.entity.Linguistics;
 import com.yildizan.newsfrom.locator.entity.LinguisticsType;
 import com.yildizan.newsfrom.locator.repository.LinguisticsRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 @Service
-@RequiredArgsConstructor
 public class LinguisticsService {
 
-    private final LinguisticsRepository linguisticsRepository;
+    private Set<String> conjunctions;
+    private Set<String> exceptions;
 
-    private Set<String> englishConjunctions;
-    private Set<String> englishExceptions;
-
-    public boolean isConjunction(String string, Language language) {
-        if (language.isEnglish()) {
-            if (Objects.isNull(englishConjunctions)) {
-                englishConjunctions = linguisticsRepository.findByLanguageCodeAndLinguisticsType(language.getCode(), LinguisticsType.CONJUNCTION)
-                        .stream()
-                        .map(Linguistics::getWord)
-                        .collect(Collectors.toSet());
-            }
-            return englishConjunctions.contains(string);
-        } else {
-            throw new IllegalArgumentException("unsupported language: " + language.getCode());
-        }
+    @Autowired
+    public LinguisticsService(LinguisticsRepository linguisticsRepository) {
+        this.conjunctions = linguisticsRepository.findByLinguisticsType(LinguisticsType.CONJUNCTION)
+            .stream()
+            .map(Linguistics::getWord)
+            .collect(Collectors.toSet());
+        this.exceptions = linguisticsRepository.findByLinguisticsType(LinguisticsType.EXCEPTION)
+            .stream()
+            .map(Linguistics::getWord)
+            .collect(Collectors.toSet());
     }
 
-    public boolean isException(String string, Language language) {
-        if (language.isEnglish()) {
-            if (Objects.isNull(englishExceptions)) {
-                englishExceptions = linguisticsRepository.findByLanguageCodeAndLinguisticsType(language.getCode(), LinguisticsType.EXCEPTION)
-                        .stream()
-                        .map(Linguistics::getWord)
-                        .collect(Collectors.toSet());
-            }
-            return englishExceptions.contains(string);
-        } else {
-            throw new IllegalArgumentException("unsupported language: " + language.getCode());
-        }
+    public boolean isConjunction(String string) {
+        return conjunctions.contains(string);
     }
 
-    public boolean notException(String string, Language language) {
-        return !isException(string, language);
+    public boolean isException(String string) {
+        return exceptions.contains(string);
+    }
+
+    public boolean notException(String string) {
+        return !isException(string);
     }
 
 }

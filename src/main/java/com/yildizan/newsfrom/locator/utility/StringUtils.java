@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-import com.yildizan.newsfrom.locator.entity.Language;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -29,7 +28,7 @@ public final class StringUtils {
 		return cleanString;
 	}
 
-	public static String cleanSuffix(String string, Language language) {
+	public static String cleanSuffix(String string) {
 		String cleanString = string
 				.replace('`', '\'')
 				.replace('’', '\'')
@@ -37,7 +36,7 @@ public final class StringUtils {
 		while(endsWithPunctuation(cleanString)) {
 			cleanString = cleanString.substring(0, cleanString.length() - 1);
 		}
-		cleanString = endsWithPossessive(cleanString, language) ? cleanString.substring(0, cleanString.lastIndexOf('\'')) : cleanString;
+		cleanString = endsWithPossessive(cleanString) ? cleanString.substring(0, cleanString.lastIndexOf('\'')) : cleanString;
 		return cleanString;
 	}
 	
@@ -49,14 +48,8 @@ public final class StringUtils {
 		return punctuations.contains(string.charAt(string.length() - 1)) && string.length() > 1 && !Character.isUpperCase(string.charAt(string.length() - 2));
 	}
 	
-	public static boolean endsWithPossessive(String string, Language language) {
-		if (language.isEnglish()) {
-			return string.endsWith("'s") || string.endsWith("s'");
-		} else if (language.isTurkish()) {
-			return endsWithPunctuation(string);
-		} else {
-			throw new IllegalArgumentException("unsupported language: " + language.getCode());
-		}
+	public static boolean endsWithPossessive(String string) {
+		return string.endsWith("'s") || string.endsWith("s'");
 	}
 
 	public static String wrapWith(String string, String wrapper) {
