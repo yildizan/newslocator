@@ -25,6 +25,10 @@ public final class StringUtils {
 		
 		// clean sputnik prefix
 		cleanString = cleanString.contains("(Sputnik) - ") ? cleanString.substring(cleanString.indexOf("(Sputnik) - ") + "(Sputnik) - ".length()) : cleanString;
+
+		// clean buzzfeed suffix
+		cleanString = cleanString.contains("View Entire Post") ? cleanString.substring(0, cleanString.indexOf("View Entire Post")) : cleanString;
+
 		return cleanString;
 	}
 
@@ -52,7 +56,7 @@ public final class StringUtils {
 		return string.endsWith("'s") || string.endsWith("s'");
 	}
 
-	public static String wrapWith(String string, String wrapper) {
+	public static String wrap(String string, String wrapper) {
 		return wrapper + string + wrapper;
 	}
 
