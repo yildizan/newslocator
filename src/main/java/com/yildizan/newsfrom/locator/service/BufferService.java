@@ -15,8 +15,8 @@ public class BufferService {
         entityManager.createStoredProcedureQuery("clear_buffer").execute();
     }
 
-    public void updateNews() {
-        entityManager.createStoredProcedureQuery("update_news").execute();
+    public void flushBuffer() {
+        entityManager.createStoredProcedureQuery("flush_buffer").execute();
     }
 
 }
