@@ -1,5 +1,7 @@
 package com.yildizan.newsfrom.locator.dto;
 
+import java.util.Objects;
+
 import com.yildizan.newsfrom.locator.entity.Feed;
 import lombok.Data;
 
@@ -11,7 +13,7 @@ public class SummaryDto {
     private long finish;
     private int located;
     private int matched;
-    private int notMatched;
+    private int none;
     private Exception exception;
 
     public SummaryDto(Feed feed, long start) {
@@ -27,8 +29,8 @@ public class SummaryDto {
         this.matched++;
     }
 
-    public void incrementNotMatched() {
-        this.notMatched++;
+    public void incrementNone() {
+        this.none++;
     }
 
     public long getDuration() {
@@ -36,7 +38,7 @@ public class SummaryDto {
     }
 
     public boolean isSuccessful() {
-        return exception == null;
+        return Objects.isNull(exception);
     }
 
 }

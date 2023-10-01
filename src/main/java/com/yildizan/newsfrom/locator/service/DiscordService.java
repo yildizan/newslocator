@@ -47,7 +47,7 @@ public class DiscordService {
             }
 
             String fieldName = (summary.isSuccessful() ? DiscordEmojis.CHECK_MARK : DiscordEmojis.CROSS) + ' ' + publisherName;
-            String fieldValue = summary.getLocated() + " / " + summary.getMatched() + " / " + summary.getNotMatched();
+            String fieldValue = summary.getLocated() + " / " + summary.getMatched() + " / " + summary.getNone();
             FieldDto field = new FieldDto(fieldName, fieldValue);
             embed.getFields().add(field);
         });
