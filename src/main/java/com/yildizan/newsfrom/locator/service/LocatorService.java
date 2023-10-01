@@ -57,13 +57,13 @@ public class LocatorService {
 
         // descending order
         phrases.sort(Collections.reverseOrder());
-        news.setTopPhrase(phrases.get(0));
+        news.setPhrase(phrases.get(0));
         for (Phrase phrase : phrases) {
             // match original
             phraseService.match(phrase);
             phrase.mergeCount();
             if (!news.isLocated() && phrase.isLocated()) {
-                news.setTopPhrase(phrase);
+                news.setPhrase(phrase);
                 return;
             }
 
@@ -75,7 +75,7 @@ public class LocatorService {
                 Phrase child = new Phrase(words.get(j));
                 phraseService.match(child);
                 if (child.isLocated()) {
-                    news.setTopPhrase(phrase);
+                    news.setPhrase(phrase);
                     phrase.setLocation(child.getLocation());
                     return;
                 }
@@ -85,7 +85,7 @@ public class LocatorService {
                     child = new Phrase(child.getContent() + ' ' + words.get(k));
                     phraseService.match(child);
                     if (child.isLocated()) {
-                        news.setTopPhrase(child);
+                        news.setPhrase(child);
                         phrase.setLocation(child.getLocation());
                         return;
                     }
@@ -99,7 +99,7 @@ public class LocatorService {
                 for (Phrase research : researches) {
                     phraseService.match(research);
                     if (research.isLocated()) {
-                        news.setTopPhrase(phrase);
+                        news.setPhrase(phrase);
                         phrase.setLocation(research.getLocation());
                         return;
                     }
@@ -110,10 +110,10 @@ public class LocatorService {
 
     private void save(BufferNews news, SummaryDto summary) {
         if (news.isLocated()) {
-            phraseService.save(news.getTopPhrase());
+            phraseService.save(news.getPhrase());
             summary.incrementLocated();
         } else if (news.isMatched()) {
-            phraseService.save(news.getTopPhrase());
+            phraseService.save(news.getPhrase());
             summary.incrementMatched();
         } else {
             summary.incrementNotMatched();

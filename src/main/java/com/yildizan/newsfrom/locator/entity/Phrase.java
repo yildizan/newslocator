@@ -1,15 +1,24 @@
 package com.yildizan.newsfrom.locator.entity;
 
-import javax.persistence.*;
-
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.Objects;
 
-@Data
-@Entity
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
 @NoArgsConstructor
+@Entity
 public class Phrase implements Comparable<Phrase> {
 
 	@Id
@@ -23,14 +32,14 @@ public class Phrase implements Comparable<Phrase> {
 	@Column(name = "content", updatable = false)
 	private String content;
 	
-	private int totalCount;
+	private int count;
 
 	@Transient
 	private int currentCount;
 	
 	public Phrase(String content) {
 		this.currentCount = 1;
-		this.totalCount = 0;
+		this.count = 0;
 		this.content = content;
 	}
 	
@@ -45,11 +54,11 @@ public class Phrase implements Comparable<Phrase> {
 	public void merge(Phrase phrase) {
 		id = phrase.getId();
 		location = phrase.getLocation();
-		totalCount = phrase.getTotalCount();
+		count = phrase.getCount();
 	}
 
 	public void mergeCount() {
-		totalCount += currentCount;
+		count += currentCount;
 	}
 
 	@Override

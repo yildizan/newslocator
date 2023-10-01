@@ -1,9 +1,9 @@
 package com.yildizan.newsfrom.locator.entity;
 
-import lombok.Data;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
+
+import lombok.Data;
 
 @Data
 @Entity
@@ -15,31 +15,31 @@ public class Publisher {
     private String name;
 
     public boolean isSputnik() {
-        return id == 1;
+        return name.equalsIgnoreCase("sputnik");
     }
 
     public boolean isReuters() {
-        return id == 2;
+        return name.equalsIgnoreCase("reuters");
     }
 
     public boolean isBbc() {
-        return id == 3;
+        return name.equalsIgnoreCase("bbc");
     }
 
     public boolean isBuzzFeed() {
-        return id == 4;
+        return name.equalsIgnoreCase("buzzfeed");
     }
 
     public boolean isWashingtonPost() {
-        return id == 5;
+        return name.equalsIgnoreCase("washington post");
     }
 
     public boolean isNewYorkTimes() {
-        return id == 6;
+        return name.equalsIgnoreCase("new york times");
     }
 
     public boolean isFoxNews() {
-        return id == 7;
+        return name.equalsIgnoreCase("fox news");
     }
 
 }
