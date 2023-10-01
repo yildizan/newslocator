@@ -1,5 +1,14 @@
 package com.yildizan.newsfrom.locator.service;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import com.yildizan.newsfrom.locator.client.DiscordClient;
 import com.yildizan.newsfrom.locator.dto.SummaryDto;
 import com.yildizan.newsfrom.locator.dto.discord.EmbedDto;
@@ -8,15 +17,8 @@ import com.yildizan.newsfrom.locator.dto.discord.FieldDto;
 import com.yildizan.newsfrom.locator.dto.discord.FooterDto;
 import com.yildizan.newsfrom.locator.dto.discord.InfoDto;
 import com.yildizan.newsfrom.locator.utility.DiscordEmojis;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -44,16 +46,16 @@ public class DiscordService {
                 notify(summary.getException(), publisherName);
             }
 
-            FieldDto field = new FieldDto();
-            field.setName((summary.isSuccessful() ? DiscordEmojis.CHECK_MARK : DiscordEmojis.CROSS) + ' ' + publisherName);
-            field.setValue(summary.getLocated() + " / " + summary.getMatched() + " / " + summary.getNotMatched());
-
+            String fieldName = (summary.isSuccessful() ? DiscordEmojis.CHECK_MARK : DiscordEmojis.CROSS) + ' ' + publisherName;
+            String fieldValue = summary.getLocated() + " / " + summary.getMatched() + " / " + summary.getNotMatched();
+            FieldDto field = new FieldDto(fieldName, fieldValue);
             embed.getFields().add(field);
         });
 
-        embed.setFooter(new FooterDto(duration + " ms"));
-        InfoDto dto = new InfoDto(Collections.singletonList(embed));
+        FooterDto footer = new FooterDto(duration + " ms");
+        embed.setFooter(footer);
 
+        InfoDto dto = new InfoDto(Collections.singletonList(embed));
         discordClient.notifyInfo(dto);
     }
 
@@ -62,7 +64,8 @@ public class DiscordService {
         PrintStream ps = new PrintStream(os);
         e.printStackTrace(ps);
 
-        discordClient.notifyError(new ErrorFileDto(os.toByteArray(), "files[0]", publisherName + ".txt"));
+        ErrorFileDto dto = new ErrorFileDto(os.toByteArray(), "files[0]", publisherName + ".txt");
+        discordClient.notifyError(dto);
     }
 
 }

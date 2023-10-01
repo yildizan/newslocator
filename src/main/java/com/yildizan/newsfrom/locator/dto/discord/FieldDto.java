@@ -1,12 +1,9 @@
 package com.yildizan.newsfrom.locator.dto.discord;
 
-import lombok.Data;
+public record FieldDto(String name, String value, boolean inline) {
 
-@Data
-public class FieldDto {
-
-    private String name;
-    private String value;
-    private final boolean inline = true;
+    public FieldDto(String name, String value) {
+        this(name, value, true);
+    }
 
 }

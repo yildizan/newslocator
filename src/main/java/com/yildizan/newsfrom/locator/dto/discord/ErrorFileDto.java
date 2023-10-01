@@ -57,7 +57,9 @@ public class ErrorFileDto implements MultipartFile {
 
     @Override
     public void transferTo(File dest) throws IOException, IllegalStateException {
-        new FileOutputStream(dest).write(bytes);
+        FileOutputStream out = new FileOutputStream(dest);
+        out.write(bytes);
+        out.close();
     }
     
 }
