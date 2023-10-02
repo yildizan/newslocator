@@ -4,16 +4,20 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.6.4</version>
+		<version>3.1.4</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.yildizan.newsfrom</groupId>
 	<artifactId>locator</artifactId>
-	<version>2.0</version>
-	<name>locator</name>
+	<version>2.1</version>
+	<name>newsfrom-locator</name>
 
 	<properties>
-		<java.version>11</java.version>
+		<java.version>17</java.version>
+		<mysql.version>8.1.0</mysql.version>
+		<jackson.version>2.13.1</jackson.version>
+		<rome.version>2.1.0</rome.version>
+    	<spring-cloud.version>2022.0.4</spring-cloud.version>
 	</properties>
 
 	<dependencies>
@@ -24,7 +28,6 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
-			<version>3.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -32,8 +35,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<version>${mysql.version}</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
@@ -44,19 +48,31 @@
 		<dependency>
 			<groupId>com.rometools</groupId>
 			<artifactId>rome</artifactId>
-			<version>1.18.0</version>
+			<version>${rome.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
-			<version>2.13.1</version>
+			<version>${jackson.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.13.1</version>
+			<version>${jackson.version}</version>
 		</dependency>
 	</dependencies>
+		
+	<dependencyManagement>
+		<dependencies>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-dependencies</artifactId>
+			<version>${spring-cloud.version}</version>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<plugins>
@@ -71,13 +87,6 @@
 						</exclude>
 					</excludes>
 				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>org.springframework.boot.experimental</groupId>
-						<artifactId>spring-boot-thin-layout</artifactId>
-						<version>1.0.28.RELEASE</version>
-					</dependency>
-				</dependencies>
 			</plugin>
 		</plugins>
 	</build>

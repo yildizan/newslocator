@@ -3,7 +3,7 @@ package com.yildizan.newsfrom.locator.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 @Service
 @RequiredArgsConstructor

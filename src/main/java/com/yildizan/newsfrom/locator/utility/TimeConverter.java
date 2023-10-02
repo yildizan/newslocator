@@ -2,7 +2,7 @@ package com.yildizan.newsfrom.locator.utility;
 
 import java.sql.Timestamp;
 
-import javax.persistence.AttributeConverter;
+import jakarta.persistence.AttributeConverter;
 
 public class TimeConverter implements AttributeConverter<Long, Timestamp> {
 
