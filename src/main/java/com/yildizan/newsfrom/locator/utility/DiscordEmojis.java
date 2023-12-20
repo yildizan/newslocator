@@ -1,7 +1,6 @@
 package com.yildizan.newsfrom.locator.utility;
 
 import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)

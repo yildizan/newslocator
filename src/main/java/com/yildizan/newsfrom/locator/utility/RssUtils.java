@@ -3,6 +3,7 @@ package com.yildizan.newsfrom.locator.utility;
 import com.rometools.rome.feed.synd.SyndEnclosure;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 import com.yildizan.newsfrom.locator.entity.BufferNews;
@@ -10,9 +11,16 @@ import com.yildizan.newsfrom.locator.entity.Feed;
 import com.yildizan.newsfrom.locator.entity.Publisher;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.jdom2.Element;
 
-import java.net.URL;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -20,12 +28,10 @@ import java.util.Objects;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RssUtils {
 
-    public static List<BufferNews> read(Feed feed) throws Exception {
+    public static List<BufferNews> read(Feed feed) throws IOException, FeedException {
         List<BufferNews> newsList = new ArrayList<>();
 
-        URL url = new URL(feed.getUrl());
-        SyndFeedInput input = new SyndFeedInput();
-        SyndFeed rss = input.build(new XmlReader(url));
+        SyndFeed rss = loadFeed(feed.getUrl());
         for (SyndEntry entry : rss.getEntries()) {
             BufferNews news = new BufferNews();
             news.setTitle(StringUtils.cleanCode(entry.getTitle()));
@@ -101,6 +107,27 @@ public final class RssUtils {
 
         }
         return StringUtils.emptyString();
+    }
+
+    private static SyndFeed loadFeed(String url) throws IOException, FeedException {
+        SyndFeed rss = null;
+
+        try (CloseableHttpClient client = HttpClients.createMinimal()) {
+            HttpUriRequest request = new HttpGet(url);
+            try (
+                CloseableHttpResponse response = client.execute(request);
+                 InputStream stream = response.getEntity().getContent()
+            ) {
+              SyndFeedInput input = new SyndFeedInput();
+              rss = input.build(new XmlReader(stream));
+            }
+        }
+        
+        if (rss == null) {
+            throw new FeedException(String.format("unable to fetch: %s", url));
+        }
+        
+        return rss;
     }
 
 }

@@ -3,7 +3,7 @@ package com.yildizan.newsfrom.locator.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 @Service
 @RequiredArgsConstructor
@@ -15,8 +15,8 @@ public class BufferService {
         entityManager.createStoredProcedureQuery("clear_buffer").execute();
     }
 
-    public void updateNews() {
-        entityManager.createStoredProcedureQuery("update_news").execute();
+    public void flushBuffer() {
+        entityManager.createStoredProcedureQuery("flush_buffer").execute();
     }
 
 }

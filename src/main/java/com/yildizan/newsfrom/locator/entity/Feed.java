@@ -1,6 +1,9 @@
 package com.yildizan.newsfrom.locator.entity;
 
-import javax.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 import lombok.Data;
 
@@ -14,10 +17,6 @@ public class Feed {
 	@ManyToOne
 	@JoinColumn(name = "publisher_id")
 	private Publisher publisher;
-
-	@ManyToOne
-	@JoinColumn(name = "language_id")
-	private Language language;
 
 	private String url;
 	private boolean isActive;
