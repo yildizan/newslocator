@@ -36,11 +36,16 @@ public class LocatorRunner implements CommandLineRunner {
         tock = System.currentTimeMillis();
         log.info(String.format("processed in %d ms", tock - tick));
 
-        tick = System.currentTimeMillis();
-        log.info("flushing buffer...");
-        bufferService.flushBuffer();
-        tock = System.currentTimeMillis();
-        log.info(String.format("flushed buffer in %d ms", tock - tick));
+        boolean success = summaries.stream().noneMatch(s -> !s.isSuccessful());
+        if (success) {
+            tick = System.currentTimeMillis();
+            log.info("flushing buffer...");
+            bufferService.flushBuffer();
+            tock = System.currentTimeMillis();
+            log.info(String.format("flushed buffer in %d ms", tock - tick));
+        } else {
+            log.error("error detected...");
+        }
 
         tick = System.currentTimeMillis();
         log.info("notifying...");
