@@ -4,8 +4,8 @@ import com.yildizan.newsfrom.locator.dto.SummaryDto;
 import com.yildizan.newsfrom.locator.entity.BufferNews;
 import com.yildizan.newsfrom.locator.entity.Feed;
 import com.yildizan.newsfrom.locator.entity.Phrase;
-import com.yildizan.newsfrom.locator.utility.RssUtils;
 import com.yildizan.newsfrom.locator.utility.StringUtils;
+import com.yildizan.newsfrom.locator.utility.rss.RssReader;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,7 +37,7 @@ public class LocatorService {
     public SummaryDto process(Feed feed)  {
         SummaryDto summary = new SummaryDto(feed, System.currentTimeMillis());
         try {
-            List<BufferNews> newsList = RssUtils.read(feed);
+            List<BufferNews> newsList = RssReader.read(feed);
             for (BufferNews news : newsList) {
                 locate(news);
                 save(news, summary);

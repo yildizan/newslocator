@@ -14,32 +14,4 @@ public class Publisher {
 
     private String name;
 
-    public boolean isSputnik() {
-        return name.equalsIgnoreCase("sputnik");
-    }
-
-    public boolean isReuters() {
-        return name.equalsIgnoreCase("reuters");
-    }
-
-    public boolean isBbc() {
-        return name.equalsIgnoreCase("bbc");
-    }
-
-    public boolean isBuzzFeed() {
-        return name.equalsIgnoreCase("buzzfeed");
-    }
-
-    public boolean isWashingtonPost() {
-        return name.equalsIgnoreCase("washington post");
-    }
-
-    public boolean isNewYorkTimes() {
-        return name.equalsIgnoreCase("new york times");
-    }
-
-    public boolean isFoxNews() {
-        return name.equalsIgnoreCase("fox news");
-    }
-
 }
