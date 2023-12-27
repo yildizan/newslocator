@@ -23,6 +23,7 @@ public class PhraseService {
 
     public void save(Phrase phrase) {
         phraseRepository.save(phrase);
+        cacheablePhraseService.evict(phrase.getContent());
     }
 
     public void match(Phrase phrase) {

@@ -3,6 +3,8 @@ package com.yildizan.newsfrom.locator.service;
 import com.yildizan.newsfrom.locator.entity.Phrase;
 import com.yildizan.newsfrom.locator.repository.PhraseRepository;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -16,5 +18,8 @@ public class CacheablePhraseService {
     public Phrase find(String content) {
         return phraseRepository.findByContent(content).orElse(null);
     }
+
+    @CacheEvict(value = "phrases", key = "#content")
+    public void evict(String content) { }
 
 }
