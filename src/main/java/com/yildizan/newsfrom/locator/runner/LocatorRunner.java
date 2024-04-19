@@ -24,9 +24,11 @@ public class LocatorRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        boolean dryRun = true;
+
         long tick = System.currentTimeMillis();
         log.info("clearing buffer...");
-        bufferService.clearBuffer();
+        if (!dryRun) bufferService.clearBuffer();
         long tock = System.currentTimeMillis();
         log.info(String.format("cleared buffer in %d ms", tock - tick));
 
@@ -40,7 +42,7 @@ public class LocatorRunner implements CommandLineRunner {
         if (success) {
             tick = System.currentTimeMillis();
             log.info("flushing buffer...");
-            bufferService.flushBuffer();
+            if (!dryRun) bufferService.flushBuffer();
             tock = System.currentTimeMillis();
             log.info(String.format("flushed buffer in %d ms", tock - tick));
         } else {
