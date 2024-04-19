@@ -3,6 +3,7 @@ package com.yildizan.newsfrom.locator.service;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -54,6 +55,8 @@ public class DiscordService {
 
         FooterDto footer = new FooterDto(duration + " ms");
         embed.setFooter(footer);
+
+        embed.getFields().sort(Comparator.comparing(FieldDto::name));
 
         InfoDto dto = new InfoDto(Collections.singletonList(embed));
         discordClient.notifyInfo(dto);
