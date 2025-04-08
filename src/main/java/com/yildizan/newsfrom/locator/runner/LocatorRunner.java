@@ -5,6 +5,7 @@ import com.yildizan.newsfrom.locator.service.BufferService;
 import com.yildizan.newsfrom.locator.service.DiscordService;
 import com.yildizan.newsfrom.locator.service.LocatorService;
 
+import java.util.Arrays;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class LocatorRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        boolean dryRun = true;
+        boolean dryRun = Arrays.stream(args).anyMatch("--dry-run"::equals);
 
         long tick = System.currentTimeMillis();
         log.info("clearing buffer...");
