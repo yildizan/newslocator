@@ -55,7 +55,7 @@ public class OpenAiService {
         try {
             completions = openAIClient.getChatCompletions(deploymentName, options);
         } catch (HttpResponseException e) {
-            log.error("Error getting response", e);
+            log.warn("openai api error for text: " + description, e);
             return null;
         }
 
@@ -72,7 +72,7 @@ public class OpenAiService {
         try {
             responseDto = parseResponse(response);
         } catch (IOException e) {
-            log.error("Error parsing response", e);
+            log.error("openai response parser error for response: " + response, e);
         }
         return responseDto;
     }
