@@ -123,7 +123,7 @@ public class LocatorService {
         }
 
         // match by asking
-        OpenAiResponseDto openAiResponse = openAiService.query(news.getDescription());
+        OpenAiResponseDto openAiResponse = openAiService.ask(news.getDescription());
         if (openAiResponse != null) {
             Location location = locationService.findByName(openAiResponse.getCity());
             if (location == null) {

@@ -14,6 +14,7 @@ import com.azure.ai.openai.models.ChatRequestSystemMessage;
 import com.azure.ai.openai.models.ChatRequestUserMessage;
 import com.azure.ai.openai.models.CompletionsUsage;
 import com.azure.core.credential.KeyCredential;
+import com.azure.core.exception.HttpResponseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yildizan.newsfrom.locator.dto.OpenAiResponseDto;
@@ -39,7 +40,7 @@ public class OpenAiService {
             .buildClient();
     }
 
-    public OpenAiResponseDto query(String description) {
+    public OpenAiResponseDto ask(String description) {
         if (!enabled) {
             return null;
         }
@@ -50,7 +51,13 @@ public class OpenAiService {
         ChatRequestUserMessage message = new ChatRequestUserMessage(description);
         ChatCompletionsOptions options = new ChatCompletionsOptions(List.of(instruction, message));
 
-        ChatCompletions completions = openAIClient.getChatCompletions(deploymentName, options);
+        ChatCompletions completions;
+        try {
+            completions = openAIClient.getChatCompletions(deploymentName, options);
+        } catch (HttpResponseException e) {
+            log.error("Error getting response", e);
+            return null;
+        }
 
         CompletionsUsage usage = completions.getUsage();
         log.debug("Usage: " + usage.getPromptTokens() + " prompt tokens, " + usage.getCompletionTokens() + " completion tokens, " + usage.getTotalTokens() + " total tokens");
