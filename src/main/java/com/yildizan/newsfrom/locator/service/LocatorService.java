@@ -1,8 +1,10 @@
 package com.yildizan.newsfrom.locator.service;
 
+import com.yildizan.newsfrom.locator.dto.OpenAiResponseDto;
 import com.yildizan.newsfrom.locator.dto.SummaryDto;
 import com.yildizan.newsfrom.locator.entity.BufferNews;
 import com.yildizan.newsfrom.locator.entity.Feed;
+import com.yildizan.newsfrom.locator.entity.Location;
 import com.yildizan.newsfrom.locator.entity.Phrase;
 import com.yildizan.newsfrom.locator.utility.StringUtils;
 import com.yildizan.newsfrom.locator.utility.rss.RssReader;
@@ -23,7 +25,9 @@ import org.springframework.stereotype.Service;
 public class LocatorService {
 
     private final FeedService feedService;
+    private final LocationService locationService;
     private final NewsService newsService;
+    private final OpenAiService openAiService;
     private final PhraseService phraseService;
     private final WikipediaService wikipediaService;
 
@@ -71,6 +75,7 @@ public class LocatorService {
             phrase.mergeCount();
             if (!news.isLocated() && phrase.isLocated()) {
                 news.setPhrase(phrase);
+                log.debug("matched by original: " + phrase.getContent());
                 return;
             }
 
@@ -84,6 +89,7 @@ public class LocatorService {
                 if (child.isLocated()) {
                     news.setPhrase(phrase);
                     phrase.setLocation(child.getLocation());
+                    log.debug("matched by dividing: " + phrase.getContent());
                     return;
                 }
 
@@ -94,12 +100,13 @@ public class LocatorService {
                     if (child.isLocated()) {
                         news.setPhrase(child);
                         phrase.setLocation(child.getLocation());
+                        log.debug("matched by appending: " + child.getContent());
                         return;
                     }
                 }
             }
 
-            // match by research
+            // match by researching
             String description = wikipediaService.research(phrase.getContent());
             if (StringUtils.isNotEmpty(description)) {
                 List<Phrase> researches = phraseService.extract(description);
@@ -108,10 +115,23 @@ public class LocatorService {
                     if (research.isLocated()) {
                         news.setPhrase(phrase);
                         phrase.setLocation(research.getLocation());
+                        log.debug("matched by researching: " + phrase.getContent());
                         return;
                     }
                 }
             }
+        }
+
+        // match by asking
+        OpenAiResponseDto openAiResponse = openAiService.query(news.getDescription());
+        if (openAiResponse != null) {
+            Location location = locationService.findByName(openAiResponse.getCity());
+            if (location == null) {
+                location = new Location(openAiResponse.getCity(), openAiResponse.getLatitude(), openAiResponse.getLongitude());
+                locationService.save(location);
+            }
+            news.getPhrase().setLocation(location);
+            log.debug("matched by asking: " + news.getPhrase().getContent());
         }
     }
 
