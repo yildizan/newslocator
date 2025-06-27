@@ -7,7 +7,6 @@ import com.yildizan.newsfrom.locator.repository.LinguisticsRepository;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,7 +15,6 @@ public class LinguisticsService {
     private Set<String> conjunctions;
     private Set<String> exceptions;
 
-    @Autowired
     public LinguisticsService(LinguisticsRepository linguisticsRepository) {
         this.conjunctions = linguisticsRepository.findByLinguisticsType(LinguisticsType.CONJUNCTION)
             .stream()
