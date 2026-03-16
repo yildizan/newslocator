@@ -1,6 +1,7 @@
 package com.yildizan.newsfrom.locator.runner;
 
 import com.yildizan.newsfrom.locator.dto.SummaryDto;
+import com.yildizan.newsfrom.locator.service.ApiService;
 import com.yildizan.newsfrom.locator.service.BufferService;
 import com.yildizan.newsfrom.locator.service.DiscordService;
 import com.yildizan.newsfrom.locator.service.LocatorService;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class LocatorRunner implements CommandLineRunner {
 
+    private final ApiService apiService;
     private final DiscordService discordService;
     private final LocatorService locatorService;
     private final BufferService bufferService;
@@ -46,6 +48,12 @@ public class LocatorRunner implements CommandLineRunner {
             if (!dryRun) bufferService.flushBuffer();
             tock = System.currentTimeMillis();
             log.info(String.format("flushed buffer in %d ms", tock - tick));
+
+            tick = System.currentTimeMillis();
+            log.info("evicting cache...");
+            if (!dryRun) apiService.evictCache();
+            tock = System.currentTimeMillis();
+            log.info(String.format("evicted cache in %d ms", tock - tick));
         } else {
             log.error("error detected...");
         }
