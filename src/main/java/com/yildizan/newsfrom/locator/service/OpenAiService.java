@@ -1,66 +1,82 @@
 package com.yildizan.newsfrom.locator.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.azure.ai.openai.OpenAIClient;
-import com.azure.ai.openai.OpenAIClientBuilder;
-import com.azure.ai.openai.models.ChatCompletions;
-import com.azure.ai.openai.models.ChatCompletionsOptions;
-import com.azure.ai.openai.models.ChatRequestSystemMessage;
-import com.azure.ai.openai.models.ChatRequestUserMessage;
-import com.azure.ai.openai.models.CompletionsUsage;
-import com.azure.core.credential.KeyCredential;
-import com.azure.core.exception.HttpResponseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yildizan.newsfrom.locator.dto.OpenAiResponseDto;
+import com.yildizan.newsfrom.locator.client.OpenAiClient;
+import com.yildizan.newsfrom.locator.dto.openai.ChatRequestDto;
+import com.yildizan.newsfrom.locator.dto.openai.ChatResponseDto;
+import com.yildizan.newsfrom.locator.dto.openai.ChatMessageDto;
+import com.yildizan.newsfrom.locator.dto.openai.LocateRequestDto;
+import com.yildizan.newsfrom.locator.dto.openai.LocateResponseDto;
 
+import feign.FeignException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class OpenAiService {
 
-    private final OpenAIClient openAIClient;
-    
-    @Value("${openai.deployment-name}")
-    private String deploymentName;
+    private static final int MAX_BATCH_SIZE = 750;
+    private static final String SYSTEM_PROMPT = """
+            You are a geolocation assistant. You will receive a JSON array of news items, each with "id", "title", and "description". \
+            For each news item, determine the most relevant location on a world map where the news should be shown. \
+            Respond with a JSON array containing objects with "id", "lat", "lon", and "place" fields. \
+            Example input: [{"id":1,"title":"...","description":"..."}] \
+            Example output: [{"id":1,"lat":41.01,"lon":28.97,"place":"Istanbul"}] \
+            Respond ONLY with the JSON array, no additional text.""";
+
+    private final OpenAiClient openAiClient;
+    private final ObjectMapper objectMapper;
 
     @Value("${openai.enabled}")
     private boolean enabled;
-    
-    public OpenAiService(@Value("${openai.api-key}") String apiKey, @Value("${openai.endpoint}") String endpoint) {
-        this.openAIClient = new OpenAIClientBuilder()
-            .credential(new KeyCredential(apiKey))
-            .endpoint(endpoint)
-            .buildClient();
+
+    public List<LocateResponseDto> askBatch(List<LocateRequestDto> items) {
+        if (!enabled || items.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<LocateResponseDto> allResults = new ArrayList<>();
+
+        for (int i = 0; i < items.size(); i += MAX_BATCH_SIZE) {
+            List<LocateRequestDto> chunk = items.subList(i, Math.min(i + MAX_BATCH_SIZE, items.size()));
+            List<LocateResponseDto> chunkResults = askChunk(chunk);
+            allResults.addAll(chunkResults);
+        }
+
+        return allResults;
     }
 
-    public OpenAiResponseDto ask(String description) {
-        if (!enabled) {
-            return null;
-        }
-
-        ChatRequestSystemMessage instruction = new ChatRequestSystemMessage(
-            "Where a news with following description should be shown on a world map? Provide a response with following format: {\"city\":<city name>,\"latitude\":<latitude>,\"longitude\":<longitude>}"
-        );
-        ChatRequestUserMessage message = new ChatRequestUserMessage(description);
-        ChatCompletionsOptions options = new ChatCompletionsOptions(List.of(instruction, message));
-
-        ChatCompletions completions;
+    private List<LocateResponseDto> askChunk(List<LocateRequestDto> chunk) {
+        String userContent;
         try {
-            completions = openAIClient.getChatCompletions(deploymentName, options);
-        } catch (HttpResponseException e) {
-            log.warn("openai api error for text: " + description, e);
-            return null;
+            userContent = objectMapper.writeValueAsString(chunk);
+        } catch (IOException e) {
+            log.error("failed to serialize request items", e);
+            return Collections.emptyList();
         }
 
-        CompletionsUsage usage = completions.getUsage();
-        log.debug("Usage: " + usage.getPromptTokens() + " prompt tokens, " + usage.getCompletionTokens() + " completion tokens, " + usage.getTotalTokens() + " total tokens");
+        ChatMessageDto systemMessage = new ChatMessageDto("system", SYSTEM_PROMPT);
+        ChatMessageDto userMessage = new ChatMessageDto("user", userContent);
+        ChatRequestDto request = new ChatRequestDto(List.of(systemMessage, userMessage));
+
+        ChatResponseDto completions;
+        try {
+            completions = openAiClient.getChatCompletions(request);
+        } catch (FeignException e) {
+            log.warn("openai api error for batch of " + chunk.size() + " items", e);
+            return Collections.emptyList();
+        }
 
         String response = completions
             .getChoices()
@@ -68,17 +84,12 @@ public class OpenAiService {
             .getMessage()
             .getContent();
 
-        OpenAiResponseDto responseDto = null;
         try {
-            responseDto = parseResponse(response);
+            return objectMapper.readValue(response, new TypeReference<List<LocateResponseDto>>() {});
         } catch (IOException e) {
             log.error("openai response parser error for response: " + response, e);
+            return Collections.emptyList();
         }
-        return responseDto;
-    }
-
-    private OpenAiResponseDto parseResponse(String response) throws IOException {
-        return new ObjectMapper().readValue(response, new TypeReference<OpenAiResponseDto>() {});
     }
 
 }
