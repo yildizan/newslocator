@@ -26,10 +26,6 @@ public class BufferNews {
 	@JoinColumn(name = "feed_id")
 	private Feed feed;
 
-	@ManyToOne
-	@JoinColumn(name = "phrase_id")
-	private Phrase phrase;
-
 	private String title;
 	private String description;
 	private String link;
@@ -38,12 +34,12 @@ public class BufferNews {
 	@Convert(converter = TimeConverter.class)
 	private Long publishDate;
 
-	public boolean isMatched() {
-		return Objects.nonNull(phrase);
-	}
-	
+	private String place;
+	private Double latitude;
+	private Double longitude;
+
 	public boolean isLocated() {
-		return isMatched() && phrase.isLocated();
+		return Objects.nonNull(place);
 	}
 
 }

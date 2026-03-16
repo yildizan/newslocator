@@ -1,17 +1,16 @@
 package com.yildizan.newsfrom.locator.service;
 
-import com.yildizan.newsfrom.locator.dto.OpenAiResponseDto;
 import com.yildizan.newsfrom.locator.dto.SummaryDto;
+import com.yildizan.newsfrom.locator.dto.openai.LocateRequestDto;
+import com.yildizan.newsfrom.locator.dto.openai.LocateResponseDto;
 import com.yildizan.newsfrom.locator.entity.BufferNews;
 import com.yildizan.newsfrom.locator.entity.Feed;
-import com.yildizan.newsfrom.locator.entity.Location;
-import com.yildizan.newsfrom.locator.entity.Phrase;
-import com.yildizan.newsfrom.locator.utility.StringUtils;
 import com.yildizan.newsfrom.locator.utility.rss.RssReader;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
@@ -24,128 +23,75 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class LocatorService {
 
+    private static final int MAX_TITLE_LENGTH = 100;
+    private static final int MAX_DESCRIPTION_LENGTH = 200;
+
     private final FeedService feedService;
-    private final LocationService locationService;
     private final NewsService newsService;
     private final OpenAiService openAiService;
-    private final PhraseService phraseService;
-    private final WikipediaService wikipediaService;
 
     public List<SummaryDto> bulkProcess() {
-        return feedService.findActiveFeeds()
-            .parallelStream()
-            .map(this::process)
+        List<SummaryDto> summaries = new ArrayList<>();
+        List<BufferNews> allNews = new ArrayList<>();
+
+        // fetch and save all news from all feeds
+        for (Feed feed : feedService.findActiveFeeds()) {
+            SummaryDto summary = new SummaryDto(feed, System.currentTimeMillis());
+            try {
+                log.info("processing feed " + feed.getUrl());
+                List<BufferNews> newsList = RssReader.read(feed);
+                log.info(newsList.size() + " news read");
+                allNews.addAll(newsService.saveAll(newsList));
+                log.info(newsList.size() + " news saved");
+                summary.setCount(newsList.size());
+            } catch (Exception e) {
+                summary.setException(e);
+            } finally {
+                summary.setFinish(System.currentTimeMillis());
+            }
+            summaries.add(summary);
+        }
+
+        // batch locate via OpenAI
+        log.info(String.format("locating %d news...", allNews.size()));
+        locate(allNews);
+        log.info(String.format("located %d news", allNews.size()));
+
+        // save located news
+        newsService.saveAll(allNews);
+
+        return summaries;
+    }
+
+    private void locate(List<BufferNews> newsList) {
+        List<LocateRequestDto> requestItems = newsList.stream()
+            .map(news -> new LocateRequestDto(
+                news.getId(),
+                truncate(news.getTitle(), MAX_TITLE_LENGTH),
+                truncate(news.getDescription(), MAX_DESCRIPTION_LENGTH)
+            ))
             .toList();
-    }
 
-    public SummaryDto process(Feed feed)  {
-        SummaryDto summary = new SummaryDto(feed, System.currentTimeMillis());
-        try {
-            List<BufferNews> newsList = RssReader.read(feed);
-            for (BufferNews news : newsList) {
-                locate(news);
-                save(news, summary);
+        List<LocateResponseDto> responseItems = openAiService.askBatch(requestItems);
+
+        Map<Long, LocateResponseDto> responseById = responseItems.stream()
+            .collect(Collectors.toMap(LocateResponseDto::getId, Function.identity()));
+
+        for (BufferNews news : newsList) {
+            LocateResponseDto location = responseById.get((long) news.getId());
+            if (location != null) {
+                news.setPlace(location.getPlace());
+                news.setLatitude(location.getLat());
+                news.setLongitude(location.getLon());
             }
-        } catch (Exception e) {
-            summary.setException(e);
-        }
-        finally {
-            summary.setFinish(System.currentTimeMillis());
-        }
-        return summary;
-    }
-
-    private void locate(BufferNews news) {
-        List<Phrase> phrases = phraseService.extract(news);
-        if (phrases.isEmpty()) {
-            return;
-        }
-
-        log.debug("publisher: " + news.getFeed().getPublisher().getName());
-        log.debug("title: " + news.getTitle());
-        log.debug("description: " + news.getDescription());
-        log.debug("phrases: " + phrases.stream().map(Phrase::getContent).collect(Collectors.joining(", ")) + "\r\n");
-
-        // descending order
-        phrases.sort(Collections.reverseOrder());
-        news.setPhrase(phrases.get(0));
-        for (Phrase phrase : phrases) {
-            // match original
-            phraseService.match(phrase);
-            phrase.mergeCount();
-            if (!news.isLocated() && phrase.isLocated()) {
-                news.setPhrase(phrase);
-                log.debug("matched by original: " + phrase.getContent());
-                return;
-            }
-
-            // match by dividing
-            List<String> words = Arrays.stream(StringUtils.splitBySpace(phrase.getContent()))
-                    .filter(StringUtils::startsWithUppercase)
-                    .collect(Collectors.toList());
-            for (int j = 0; j < words.size() && words.size() > 1; j++) {
-                Phrase child = new Phrase(words.get(j));
-                phraseService.match(child);
-                if (child.isLocated()) {
-                    news.setPhrase(phrase);
-                    phrase.setLocation(child.getLocation());
-                    log.debug("matched by dividing: " + phrase.getContent());
-                    return;
-                }
-
-                // match by appending
-                for (int k = j + 1; k < words.size(); k++) {
-                    child = new Phrase(child.getContent() + ' ' + words.get(k));
-                    phraseService.match(child);
-                    if (child.isLocated()) {
-                        news.setPhrase(child);
-                        phrase.setLocation(child.getLocation());
-                        log.debug("matched by appending: " + child.getContent());
-                        return;
-                    }
-                }
-            }
-
-            // match by researching
-            String description = wikipediaService.research(phrase.getContent());
-            if (StringUtils.isNotEmpty(description)) {
-                List<Phrase> researches = phraseService.extract(description);
-                for (Phrase research : researches) {
-                    phraseService.match(research);
-                    if (research.isLocated()) {
-                        news.setPhrase(phrase);
-                        phrase.setLocation(research.getLocation());
-                        log.debug("matched by researching: " + phrase.getContent());
-                        return;
-                    }
-                }
-            }
-        }
-
-        // match by asking
-        OpenAiResponseDto openAiResponse = openAiService.ask(news.getDescription());
-        if (openAiResponse != null) {
-            Location location = locationService.findByName(openAiResponse.getCity());
-            if (location == null) {
-                location = new Location(openAiResponse.getCity(), openAiResponse.getLatitude(), openAiResponse.getLongitude());
-                locationService.save(location);
-            }
-            news.getPhrase().setLocation(location);
-            log.debug("matched by asking: " + news.getPhrase().getContent());
         }
     }
 
-    private void save(BufferNews news, SummaryDto summary) {
-        if (news.isLocated()) {
-            phraseService.save(news.getPhrase());
-            summary.incrementLocated();
-        } else if (news.isMatched()) {
-            phraseService.save(news.getPhrase());
-            summary.incrementMatched();
-        } else {
-            summary.incrementNone();
+    private String truncate(String text, int maxLength) {
+        if (text == null) {
+            return "";
         }
-        newsService.save(news);
+        return text.length() <= maxLength ? text : text.substring(0, maxLength);
     }
 
 }
