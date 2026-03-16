@@ -11,12 +11,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.yildizan.newsfrom.locator.client.DiscordClient;
-import com.yildizan.newsfrom.locator.dto.SummaryDto;
 import com.yildizan.newsfrom.locator.dto.discord.EmbedDto;
 import com.yildizan.newsfrom.locator.dto.discord.ErrorFileDto;
 import com.yildizan.newsfrom.locator.dto.discord.FieldDto;
 import com.yildizan.newsfrom.locator.dto.discord.FooterDto;
 import com.yildizan.newsfrom.locator.dto.discord.InfoDto;
+import com.yildizan.newsfrom.locator.dto.discord.SummaryDto;
 import com.yildizan.newsfrom.locator.utility.DiscordEmojis;
 
 import lombok.RequiredArgsConstructor;

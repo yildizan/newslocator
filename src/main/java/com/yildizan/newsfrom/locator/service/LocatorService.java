@@ -1,6 +1,6 @@
 package com.yildizan.newsfrom.locator.service;
 
-import com.yildizan.newsfrom.locator.dto.SummaryDto;
+import com.yildizan.newsfrom.locator.dto.discord.SummaryDto;
 import com.yildizan.newsfrom.locator.dto.openai.LocateRequestDto;
 import com.yildizan.newsfrom.locator.dto.openai.LocateResponseDto;
 import com.yildizan.newsfrom.locator.entity.BufferNews;

@@ -1,6 +1,6 @@
 package com.yildizan.newsfrom.locator.runner;
 
-import com.yildizan.newsfrom.locator.dto.SummaryDto;
+import com.yildizan.newsfrom.locator.dto.discord.SummaryDto;
 import com.yildizan.newsfrom.locator.service.ApiService;
 import com.yildizan.newsfrom.locator.service.BufferService;
 import com.yildizan.newsfrom.locator.service.DiscordService;

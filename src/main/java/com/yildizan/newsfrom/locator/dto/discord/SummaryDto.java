@@ -1,4 +1,4 @@
-package com.yildizan.newsfrom.locator.dto;
+package com.yildizan.newsfrom.locator.dto.discord;
 
 import java.util.Objects;
 
