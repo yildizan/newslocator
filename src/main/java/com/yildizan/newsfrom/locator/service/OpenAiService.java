@@ -1,6 +1,5 @@
 package com.yildizan.newsfrom.locator.service;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -17,13 +16,10 @@ import com.yildizan.newsfrom.locator.dto.openai.ChatMessageDto;
 import com.yildizan.newsfrom.locator.dto.openai.LocateRequestDto;
 import com.yildizan.newsfrom.locator.dto.openai.LocateResponseDto;
 
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
-@Service
 @RequiredArgsConstructor
+@Service
 public class OpenAiService {
 
     private static final int MAX_BATCH_SIZE = 750;
@@ -41,7 +37,7 @@ public class OpenAiService {
     @Value("${openai.enabled}")
     private boolean enabled;
 
-    public List<LocateResponseDto> askBatch(List<LocateRequestDto> items) {
+    public List<LocateResponseDto> askBatch(List<LocateRequestDto> items) throws Exception {
         if (!enabled || items.isEmpty()) {
             return Collections.emptyList();
         }
@@ -57,26 +53,14 @@ public class OpenAiService {
         return allResults;
     }
 
-    private List<LocateResponseDto> askChunk(List<LocateRequestDto> chunk) {
-        String userContent;
-        try {
-            userContent = objectMapper.writeValueAsString(chunk);
-        } catch (IOException e) {
-            log.error("failed to serialize request items", e);
-            return Collections.emptyList();
-        }
+    private List<LocateResponseDto> askChunk(List<LocateRequestDto> chunk) throws Exception {
+        String userContent = objectMapper.writeValueAsString(chunk);
 
         ChatMessageDto systemMessage = new ChatMessageDto("system", SYSTEM_PROMPT);
         ChatMessageDto userMessage = new ChatMessageDto("user", userContent);
         ChatRequestDto request = new ChatRequestDto(List.of(systemMessage, userMessage));
 
-        ChatResponseDto completions;
-        try {
-            completions = openAiClient.getChatCompletions(request);
-        } catch (FeignException e) {
-            log.warn("openai api error for batch of " + chunk.size() + " items", e);
-            return Collections.emptyList();
-        }
+        ChatResponseDto completions = openAiClient.getChatCompletions(request);
 
         String response = completions
             .getChoices()
@@ -84,12 +68,7 @@ public class OpenAiService {
             .getMessage()
             .getContent();
 
-        try {
-            return objectMapper.readValue(response, new TypeReference<List<LocateResponseDto>>() {});
-        } catch (IOException e) {
-            log.error("openai response parser error for response: " + response, e);
-            return Collections.emptyList();
-        }
+        return objectMapper.readValue(response, new TypeReference<List<LocateResponseDto>>() {});
     }
 
 }
