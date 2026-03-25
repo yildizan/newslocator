@@ -8,6 +8,7 @@ import com.yildizan.newsfrom.locator.entity.Feed;
 import com.yildizan.newsfrom.locator.utility.rss.RssReader;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -77,12 +78,24 @@ public class LocatorService {
         Map<Long, LocateResponseDto> responseById = responseItems.stream()
             .collect(Collectors.toMap(LocateResponseDto::getId, Function.identity()));
 
+        Map<String, LocateResponseDto> canonicalByPlace = new HashMap<>();
         for (BufferNews news : newsList) {
             LocateResponseDto location = responseById.get((long) news.getId());
-            if (location != null) {
+            if (location == null || location.getPlace() == null || location.getPlace().isBlank()) {
+                continue;
+            }
+            
+            String placeKey = location.getPlace().trim().toLowerCase();
+            if (canonicalByPlace.containsKey(placeKey)) {
+                LocateResponseDto canonical = canonicalByPlace.get(placeKey);
+                news.setPlace(location.getPlace());
+                news.setLatitude(canonical.getLat());
+                news.setLongitude(canonical.getLon());
+            } else {
                 news.setPlace(location.getPlace());
                 news.setLatitude(location.getLat());
                 news.setLongitude(location.getLon());
+                canonicalByPlace.put(placeKey, location);
             }
         }
     }
