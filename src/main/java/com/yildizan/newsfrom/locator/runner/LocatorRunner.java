@@ -7,7 +7,6 @@ import com.yildizan.newsfrom.locator.service.DiscordService;
 import com.yildizan.newsfrom.locator.service.LocatorService;
 
 import java.util.Arrays;
-import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,12 +36,11 @@ public class LocatorRunner implements CommandLineRunner {
 
         tick = System.currentTimeMillis();
         log.info("processing...");
-        List<SummaryDto> summaries = locatorService.bulkProcess();
+        SummaryDto summary = locatorService.bulkProcess();
         tock = System.currentTimeMillis();
         log.info(String.format("processed in %d ms", tock - tick));
 
-        boolean success = summaries.stream().noneMatch(s -> !s.isSuccessful());
-        if (success) {
+        if (summary.isSuccessful()) {
             tick = System.currentTimeMillis();
             log.info("flushing buffer...");
             if (!dryRun) bufferService.flushBuffer();
@@ -60,7 +58,7 @@ public class LocatorRunner implements CommandLineRunner {
 
         tick = System.currentTimeMillis();
         log.info("notifying...");
-        discordService.notify(summaries);
+        discordService.notify(summary);
         tock = System.currentTimeMillis();
         log.info(String.format("notified in %d ms", tock - tick));
     }

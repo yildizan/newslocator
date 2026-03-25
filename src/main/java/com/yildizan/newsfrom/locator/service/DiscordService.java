@@ -3,9 +3,6 @@ package com.yildizan.newsfrom.locator.service;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -13,9 +10,9 @@ import org.springframework.stereotype.Service;
 import com.yildizan.newsfrom.locator.client.DiscordClient;
 import com.yildizan.newsfrom.locator.dto.discord.EmbedDto;
 import com.yildizan.newsfrom.locator.dto.discord.ErrorFileDto;
-import com.yildizan.newsfrom.locator.dto.discord.FieldDto;
 import com.yildizan.newsfrom.locator.dto.discord.FooterDto;
 import com.yildizan.newsfrom.locator.dto.discord.InfoDto;
+import com.yildizan.newsfrom.locator.dto.discord.LocateSummaryDto;
 import com.yildizan.newsfrom.locator.dto.discord.SummaryDto;
 import com.yildizan.newsfrom.locator.utility.DiscordEmojis;
 
@@ -33,30 +30,45 @@ public class DiscordService {
     @Value("${application.url}")
     private String applicationUrl;
 
-    public void notify(List<SummaryDto> summaries) {
+    public void notify(SummaryDto summary) {
         EmbedDto embed = new EmbedDto(applicationName, applicationUrl);
-        AtomicLong duration = new AtomicLong(0L);
+        long totalDuration = 0L;
+        StringBuilder description = new StringBuilder();
 
-        summaries.parallelStream().forEach(summary -> {
-            duration.addAndGet(summary.getDuration());
-            String publisherName = summary.getFeed()
+        description.append("**Read feeds:**\n");
+        for (var feedSummary : summary.getFeeds()) {
+            totalDuration += feedSummary.getDuration();
+            String publisherName = feedSummary.getFeed()
                     .getPublisher()
                     .getName();
+            String feedUrl = feedSummary.getFeed().getUrl();
 
-            if (!summary.isSuccessful()) {
-                notify(summary.getException(), publisherName);
+            if (!feedSummary.isSuccessful()) {
+                notify(feedSummary.getException(), publisherName);
             }
 
-            String fieldName = (summary.isSuccessful() ? DiscordEmojis.CHECK_MARK : DiscordEmojis.CROSS) + ' ' + publisherName;
-            String fieldValue = String.valueOf(summary.getCount());
-            FieldDto field = new FieldDto(fieldName, fieldValue);
-            embed.getFields().add(field);
-        });
+            String icon = feedSummary.isSuccessful() ? DiscordEmojis.CHECK_MARK : DiscordEmojis.CROSS;
+            String line = feedSummary.isSuccessful()
+                    ? String.format("%s [%s](%s): read %d news in %d ms", icon, publisherName, feedUrl, feedSummary.getCount(), feedSummary.getDuration())
+                    : String.format("%s [%s](%s): failed", icon, publisherName, feedUrl);
+            description.append(line).append("\n");
+        }
 
-        FooterDto footer = new FooterDto(duration + " ms");
-        embed.setFooter(footer);
+        LocateSummaryDto locateSummary = summary.getLocate();
+        if (locateSummary != null) {
+            totalDuration += locateSummary.getDuration();
+            if (!locateSummary.isSuccessful()) {
+                notify(locateSummary.getException(), "locate");
+            }
+            String icon = locateSummary.isSuccessful() ? DiscordEmojis.CHECK_MARK : DiscordEmojis.CROSS;
+            String line = locateSummary.isSuccessful()
+                    ? String.format("%s **Locate:** %d news in %d ms", icon, locateSummary.getCount(), locateSummary.getDuration())
+                    : String.format("%s **Locate:** failed", icon);
+            description.append("\n").append(line);
+        }
 
-        embed.getFields().sort(Comparator.comparing(FieldDto::name));
+        embed.setDescription(description.toString());
+        embed.setFooter(new FooterDto(totalDuration + " ms"));
 
         InfoDto dto = new InfoDto(Collections.singletonList(embed));
         discordClient.notifyInfo(dto);

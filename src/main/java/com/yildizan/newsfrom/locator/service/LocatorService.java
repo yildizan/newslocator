@@ -1,5 +1,7 @@
 package com.yildizan.newsfrom.locator.service;
 
+import com.yildizan.newsfrom.locator.dto.discord.FeedSummaryDto;
+import com.yildizan.newsfrom.locator.dto.discord.LocateSummaryDto;
 import com.yildizan.newsfrom.locator.dto.discord.SummaryDto;
 import com.yildizan.newsfrom.locator.dto.openai.LocateRequestDto;
 import com.yildizan.newsfrom.locator.dto.openai.LocateResponseDto;
@@ -31,40 +33,55 @@ public class LocatorService {
     private final NewsService newsService;
     private final OpenAiService openAiService;
 
-    public List<SummaryDto> bulkProcess() {
-        List<SummaryDto> summaries = new ArrayList<>();
+    public SummaryDto bulkProcess() {
+        SummaryDto summary = new SummaryDto();
         List<BufferNews> allNews = new ArrayList<>();
 
         // fetch and save all news from all feeds
         for (Feed feed : feedService.findActiveFeeds()) {
-            SummaryDto summary = new SummaryDto(feed, System.currentTimeMillis());
+            FeedSummaryDto feedSummary = new FeedSummaryDto();
+            feedSummary.setFeed(feed);
+            long feedStart = System.currentTimeMillis();
             try {
                 log.info("processing feed " + feed.getUrl());
                 List<BufferNews> newsList = RssReader.read(feed);
                 log.info(newsList.size() + " news read");
                 allNews.addAll(newsService.saveAll(newsList));
                 log.info(newsList.size() + " news saved");
-                summary.setCount(newsList.size());
+                feedSummary.setCount(newsList.size());
             } catch (Exception e) {
-                summary.setException(e);
+                feedSummary.setException(e);
             } finally {
-                summary.setFinish(System.currentTimeMillis());
+                feedSummary.setDuration(System.currentTimeMillis() - feedStart);
             }
-            summaries.add(summary);
+            summary.getFeeds().add(feedSummary);
         }
 
         // batch locate via OpenAI
-        log.info(String.format("locating %d news...", allNews.size()));
-        locate(allNews);
-        log.info(String.format("located %d news", allNews.size()));
+        LocateSummaryDto locateSummary = new LocateSummaryDto();
+        long locateStart = System.currentTimeMillis();
+        try {
+            log.info(String.format("locating %d news...", allNews.size()));
+            locate(allNews);
+            locateSummary.setCount(allNews.size());
+            log.info(String.format("located %d news", allNews.size()));
+        } catch (Exception e) {
+            log.error("locate failed", e);
+            locateSummary.setException(e);
+        } finally {
+            locateSummary.setDuration(System.currentTimeMillis() - locateStart);
+        }
+        summary.setLocate(locateSummary);
 
-        // save located news
-        newsService.saveAll(allNews);
+        // save located news only if locate succeeded
+        if (locateSummary.isSuccessful()) {
+            newsService.saveAll(allNews);
+        }
 
-        return summaries;
+        return summary;
     }
 
-    private void locate(List<BufferNews> newsList) {
+    private void locate(List<BufferNews> newsList) throws Exception {
         List<LocateRequestDto> requestItems = newsList.stream()
             .map(news -> new LocateRequestDto(
                 news.getId(),

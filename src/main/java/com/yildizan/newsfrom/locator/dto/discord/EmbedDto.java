@@ -10,6 +10,7 @@ public class EmbedDto {
 
     private final String title;
     private final String url;
+    private String description;
     private FooterDto footer;
     private List<FieldDto> fields = new ArrayList<>();
 
